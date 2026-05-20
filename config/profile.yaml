@@ -4,6 +4,10 @@
 # Scoring Engine が career_relevance / business_relevance を計算する際に
 # このプロファイルを参照する。
 # 値が更新されたら scoring 結果も自動で再重み付けされる。
+#
+# v0.2 (2026-05-20): 検索精度のため atom 単位の用語リスト
+# (focus_atoms_*) を追加。スコアは focus_areas (人間可読フレーズ) と
+# focus_atoms (小文字 atom) の両方から計算される。
 # =====================================================================
 
 user:
@@ -11,7 +15,7 @@ user:
   residency: "Thailand (帰国 2026-07末予定)"
   language_preference: ["ja", "en"]
 
-# --- Career & Business Focus ---------------------------------------
+# --- Career & Business Focus (人間可読、ドキュメント用) -----------
 focus_areas:
   high_priority:
     - "AI agent practical use"
@@ -31,6 +35,68 @@ focus_areas:
     - "guitar / creator activity"
     - "general consumer AI news"
 
+# --- Atom-level vocabulary (Scoring が直接マッチングに使う) -----
+# 各 atom は小文字、半角・全角混在 OK。投稿テキスト (lower-cased) に
+# 部分文字列として含まれていれば 1 ヒットとカウント。
+focus_atoms_high:
+  - "ai agent"
+  - "agent"
+  - "agentic"
+  - "claude code"
+  - "claude-code"
+  - "codex"
+  - "hermes"
+  - "openclaw"
+  - "grok"
+  - "xai"
+  - "x_search"
+  - "x automation"
+  - "content automation"
+  - "enterprise ai"
+  - "ai governance"
+  - "data governance"
+  - "data management"
+  - "consulting offering"
+  - "pre-sales"
+  - "presales"
+  - "tech sales"
+  - "career transition"
+  - "hyperscaler"
+  - "nvidia"
+  - "aws"
+  - "microsoft"
+  - "azure"
+  - "databricks"
+  - "snowflake"
+  - "anthropic"
+  - "japan return"
+  - "thailand"
+  - "rto"
+  - "gtm"
+
+focus_atoms_medium:
+  - "vertex ai"
+  - "bedrock"
+  - "openai"
+  - "gpt-5"
+  - "gemini"
+  - "copilot"
+  - "linkedin"
+  - "note"
+  - "youtube"
+  - "blackwell"
+  - "nim"
+  - "cuda"
+  - "lakehouse"
+  - "cortex"
+  - "unity catalog"
+
+focus_atoms_low:
+  - "guitar"
+  - "music creator"
+  - "consumer ai"
+  - "smart home"
+
 # --- Target Companies (job search v3.1 基準) -----------------------
 target_companies:
   hyperscalers: ["AWS", "Microsoft", "Google Cloud", "Oracle Cloud"]
@@ -39,9 +105,8 @@ target_companies:
   consulting: ["BCG", "McKinsey", "Bain", "Accenture"]
 
 # --- Relevance Weights ---------------------------------------------
-# Scoring の career_relevance 算出時にカテゴリ別重み付けに使用
 relevance_weights:
   high_priority: 1.0
   medium_priority: 0.6
   low_priority: 0.2
-  target_company_mention: 1.2   # 上記企業名が含まれる場合のブースト
+  target_company_mention: 1.2

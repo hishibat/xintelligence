@@ -2,6 +2,10 @@
 
 X 上の重要情報を効率的に収集 → 重要度判定 → Markdown / CSV / Excel / 投稿案 / 動画プロンプトまで一気通貫で出すローカルスキル群。**Human-in-the-loop 前提・自動投稿は実装しない**。
 
+> ⚠️ **MVP は draft generation only / 投稿実行機能なし。**
+> 本リポジトリは X 投稿・LinkedIn 投稿・Note 公開を **行いません**。draft text の生成までで停止し、`outputs/review_queue/` への手動移動でレビュー状態を管理します。投稿アクションは人間が手動で実行してください。
+> この方針は `tests/test_no_auto_posting_capability.py` で **negative test** として常時検証されます（posting 系の関数名・write endpoint URL・posting SDK の混入を CI で防止）。
+
 ## このリポジトリの目的
 
 - 毎朝 1 コマンドで「今日見るべき AI / テック関連 X 投稿 Top 10 + トレンド要約 + X / Note / LinkedIn 投稿案 + Grok Imagine 用画像/動画プロンプト」を取り出す

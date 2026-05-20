@@ -34,6 +34,7 @@ def build_manifest(
     warnings: list[str],
     errors: list[str],
     fallback_used: list[str],
+    fixture_hash: str = "",
 ) -> RunManifest:
     return RunManifest(
         run_id=new_run_id(),
@@ -45,6 +46,7 @@ def build_manifest(
         raw_item_count=len(raw_items),
         deduped_item_count=len(deduped_items),
         top10_count=top10_count,
+        fixture_hash=fixture_hash,
         warnings=warnings,
         errors=errors,
         missing_fields_summary=summarize_missing(deduped_items),

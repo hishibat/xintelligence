@@ -64,25 +64,45 @@ def _focus_match(text: str, focus_list: list[str]) -> float:
     return min(1.0, hits / max(1, len(atoms) // 3))
 
 
+def _atom_match(text_lc: str, atoms: list[str]) -> float:
+    """Direct atom substring match (atom list is already pre-lowercased)."""
+    if not atoms:
+        return 0.0
+    hits = sum(1 for a in atoms if a in text_lc)
+    # roughly: 3 atoms hit ⇒ ~1.0
+    return min(1.0, hits / 3.0)
+
+
 def _career_relevance(post: Post, profile: dict[str, Any]) -> tuple[float, str]:
     text = post.primary_text()
+    text_lc = text.lower()
     focus = profile.get("focus_areas", {}) or {}
     weights = profile.get("relevance_weights", {}) or {}
     targets = profile.get("target_companies", {}) or {}
 
+    # Legacy human-readable focus areas (still used for slash-split fallback)
     high = focus.get("high_priority", []) or []
     med = focus.get("medium_priority", []) or []
     low = focus.get("low_priority", []) or []
+
+    # New atom-level vocabulary — preferred path
+    atoms_high = [a.lower() for a in (profile.get("focus_atoms_high") or [])]
+    atoms_med = [a.lower() for a in (profile.get("focus_atoms_medium") or [])]
+    atoms_low = [a.lower() for a in (profile.get("focus_atoms_low") or [])]
 
     w_high = float(weights.get("high_priority", 1.0))
     w_med = float(weights.get("medium_priority", 0.6))
     w_low = float(weights.get("low_priority", 0.2))
     w_target = float(weights.get("target_company_mention", 1.2))
 
+    # Atoms get full credit; legacy phrases get half (avoid double-counting)
     score = (
-        _focus_match(text, high) * 10.0 * w_high
-        + _focus_match(text, med) * 8.0 * w_med
-        + _focus_match(text, low) * 5.0 * w_low
+        (_atom_match(text_lc, atoms_high) + 0.5 * _focus_match(text, high))
+        * 10.0 * w_high
+        + (_atom_match(text_lc, atoms_med) + 0.5 * _focus_match(text, med))
+        * 8.0 * w_med
+        + (_atom_match(text_lc, atoms_low) + 0.5 * _focus_match(text, low))
+        * 5.0 * w_low
     )
 
     company_hits: list[str] = []

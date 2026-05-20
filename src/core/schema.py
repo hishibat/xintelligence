@@ -253,6 +253,7 @@ class RunManifest:
     raw_item_count: int
     deduped_item_count: int
     top10_count: int
+    fixture_hash: str = ""
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     missing_fields_summary: dict[str, int] = field(default_factory=dict)

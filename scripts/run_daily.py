@@ -192,6 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         provider=provider_name,
         llm_provider=llm_name,
         config_hash=cfg.config_hash(),
+        fixture_hash=cfg.fixture_hash(),
         query_count=raw_seen_query_count,
         raw_items=raw_items,
         deduped_items=deduped,

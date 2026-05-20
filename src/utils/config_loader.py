@@ -19,6 +19,13 @@ except ImportError:  # pragma: no cover
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DIR = PROJECT_ROOT / "config"
+FIXTURES_PATH = PROJECT_ROOT / "fixtures" / "sample_posts.json"
+
+
+def _hash_file(path: Path) -> str:
+    if not path.exists():
+        return ""
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
 
 
 @dataclass
@@ -28,19 +35,29 @@ class AppConfig:
     profile: dict[str, Any]
     output: dict[str, Any]
     env: dict[str, str]
+    fixtures_path: Path = FIXTURES_PATH
 
     def config_hash(self) -> str:
+        """Hash includes all YAML configs PLUS fixtures content.
+
+        Re-running with the same configs and fixtures yields the same hash,
+        making run_manifest replayable.
+        """
         payload = json.dumps(
             {
                 "keywords": self.keywords,
                 "topics": self.topics,
                 "profile": self.profile,
                 "output": self.output,
+                "fixture_hash": self.fixture_hash(),
             },
             sort_keys=True,
             ensure_ascii=False,
         )
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+    def fixture_hash(self) -> str:
+        return _hash_file(self.fixtures_path)
 
 
 def _read_yaml(name: str) -> dict[str, Any]:

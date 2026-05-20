@@ -11,6 +11,7 @@ def test_manifest_records_fallback(tmp_path: Path):
     deduped = dedupe(items)
     manifest = build_manifest(
         provider="mock", llm_provider="claude", config_hash="abc",
+        fixture_hash="deadbeefcafe1234",
         query_count=3, raw_items=items, deduped_items=deduped,
         top10_count=10, warnings=["Claude API key missing"],
         errors=[], fallback_used=["llm:claude->mock"],
@@ -23,3 +24,4 @@ def test_manifest_records_fallback(tmp_path: Path):
     assert payload["warnings"], "warnings must propagate"
     assert payload["raw_item_count"] == len(items)
     assert payload["deduped_item_count"] == len(deduped)
+    assert payload["fixture_hash"] == "deadbeefcafe1234"
