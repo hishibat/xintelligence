@@ -124,9 +124,13 @@ explorer outputs\daily_reports
 
 ## 認証情報の設定方法
 
-- `.env` は **絶対に commit しない**（`.gitignore` で除外済）
+- **API key を絶対にコードに直書きしない**（`ANTHROPIC_API_KEY` / `XAI_API_KEY` / `HERMES_OAUTH_TOKEN` 等すべて）
+- `.env` は **絶対に commit しない**（`.gitignore:2` で除外、`git check-ignore -v .env` で検証可）
 - `.env.example` をコピーして必要な key だけ埋める
+- `RunManifest` に key / token / secret 系のフィールドは **持たない**（`tests/test_no_secret_in_manifest.py` で検証）
+- `logger` は環境変数を列挙しない（`src/utils/logger.py` 参照）
 - Claude API key が未設定なら自動で `mock` に fallback し、`outputs/.../run_manifest.json` の `fallback_used` に記録される（silent fallback はしない）
+- ただし `scripts/check_claude_llm.py` は **fallback 禁止**（接続テスト目的のため、key 無しなら明示的に失敗）
 
 ## 出力例
 
