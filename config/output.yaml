@@ -1,0 +1,62 @@
+# =====================================================================
+# Output Format Configuration
+# =====================================================================
+
+output:
+  base_dir: "outputs"
+  daily_reports_dir: "daily_reports"
+  csv_dir: "csv"
+  excel_dir: "excel"
+  content_drafts_dir: "content_drafts"
+  video_prompts_dir: "video_prompts"
+  review_queue_dir: "review_queue"
+
+  formats:
+    markdown: true
+    csv: true
+    excel: true       # MVP に含む。openpyxl 使用
+
+  excel:
+    sheets:
+      - "Top10"
+      - "AllItems"
+      - "TrendSummary"
+      - "ContentIdeas"
+      - "VideoPrompts"
+
+# --- Scoring ---------------------------------------------------------
+scoring:
+  weights:
+    importance: 0.30
+    novelty: 0.20
+    career_relevance: 0.20
+    note_fit: 0.15
+    x_fit: 0.15
+  top_n: 10
+
+# --- Content Drafts --------------------------------------------------
+content:
+  tones: ["professional", "insightful", "consulting_style", "casual", "bold_opinion"]
+  default_tone: "insightful"
+  channels: ["x_post", "x_thread", "note_outline", "linkedin"]
+  drafts_per_channel: 1
+  originality:
+    require_my_angle: true
+    require_source_summary: true
+    require_originality_note: true
+    needs_review_default: true
+    forbid_verbatim_copy: true
+
+# --- Video Prompts ---------------------------------------------------
+video:
+  use_cases: ["note_header", "x_short", "linkedin_visual", "youtube_shorts"]
+  prompts_per_use_case: 1
+  bilingual: true   # EN prompt + JP explanation
+
+# --- HITL Review -----------------------------------------------------
+review:
+  default_status: "needs_review"
+  buckets:
+    - "approved"
+    - "rejected"
+    - "needs_fact_check"

@@ -1,0 +1,47 @@
+# =====================================================================
+# User Context Profile  (柴田さん向け relevance 計算の入力)
+# =====================================================================
+# Scoring Engine が career_relevance / business_relevance を計算する際に
+# このプロファイルを参照する。
+# 値が更新されたら scoring 結果も自動で再重み付けされる。
+# =====================================================================
+
+user:
+  name: "Hideyuki Shibata"
+  residency: "Thailand (帰国 2026-07末予定)"
+  language_preference: ["ja", "en"]
+
+# --- Career & Business Focus ---------------------------------------
+focus_areas:
+  high_priority:
+    - "AI agent practical use"
+    - "Claude Code / Codex / Hermes / OpenClaw"
+    - "enterprise AI adoption"
+    - "data management / governance"
+    - "consulting service development"
+    - "career transition to tech vendor / hyperscaler / AI company"
+
+  medium_priority:
+    - "Thailand / Japan business context"
+    - "content creation for note / X / LinkedIn"
+    - "AI infrastructure (NVIDIA / cloud)"
+    - "data platform (Snowflake / Databricks)"
+
+  low_priority:
+    - "guitar / creator activity"
+    - "general consumer AI news"
+
+# --- Target Companies (job search v3.1 基準) -----------------------
+target_companies:
+  hyperscalers: ["AWS", "Microsoft", "Google Cloud", "Oracle Cloud"]
+  ai_vendors: ["NVIDIA", "Anthropic", "OpenAI", "xAI"]
+  data_platform: ["Snowflake", "Databricks"]
+  consulting: ["BCG", "McKinsey", "Bain", "Accenture"]
+
+# --- Relevance Weights ---------------------------------------------
+# Scoring の career_relevance 算出時にカテゴリ別重み付けに使用
+relevance_weights:
+  high_priority: 1.0
+  medium_priority: 0.6
+  low_priority: 0.2
+  target_company_mention: 1.2   # 上記企業名が含まれる場合のブースト

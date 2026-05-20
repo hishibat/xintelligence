@@ -1,0 +1,61 @@
+# =====================================================================
+# Radar-like Trend Monitoring Topics
+# =====================================================================
+# 各トピックは「監視対象キーワード群 + 想定論点」を持つ。
+# trend_analyzer がトピック単位で集計・要約する。
+# =====================================================================
+
+topics:
+  - id: ai_agent_market
+    label: "AI Agent Market"
+    keywords: ["AI agent", "coding agent", "agentic AI"]
+    angles:
+      - "誰が AI agent の標準を握るか"
+      - "エンタープライズ採用の障壁"
+      - "コーディング系 vs ビジネス系"
+
+  - id: grok_xai
+    label: "Grok / xAI"
+    keywords: ["Grok", "xAI", "Grok Imagine"]
+    angles:
+      - "X Premium+ との統合"
+      - "Grok 4 の実力評価"
+      - "画像・動画生成の品質"
+
+  - id: claude_code_coding_agent
+    label: "Claude Code / Coding Agent"
+    keywords: ["Claude Code", "Codex", "Cursor", "Windsurf"]
+    angles:
+      - "エージェント運用のベストプラクティス"
+      - "コスト最適化"
+      - "Skills / MCP / Hooks"
+
+  - id: microsoft_ai
+    label: "Microsoft AI"
+    keywords: ["Microsoft Copilot", "Azure AI", "M365 Copilot"]
+    angles:
+      - "Enterprise 採用率"
+      - "Activation GTM"
+      - "ライセンス・価格戦略"
+
+  - id: nvidia_ai_infra
+    label: "NVIDIA / AI Infrastructure"
+    keywords: ["NVIDIA", "NIM", "Blackwell", "DGX"]
+    angles:
+      - "Inference コスト"
+      - "On-prem vs cloud"
+      - "Sovereign AI"
+
+  - id: data_platform
+    label: "Data Platform"
+    keywords: ["Snowflake", "Databricks", "BigQuery", "lakehouse"]
+    angles:
+      - "AI ネイティブ機能"
+      - "ガバナンスと統合"
+
+  - id: career_job_market
+    label: "Career / Job Market"
+    keywords: ["tech sales hiring", "AI GTM", "hyperscaler hiring"]
+    angles:
+      - "AI 専任ロールの増減"
+      - "外資系日本法人の RTO 傾向"

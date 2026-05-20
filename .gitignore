@@ -1,0 +1,40 @@
+# Secrets
+.env
+.env.local
+
+# Outputs (実データを含むため git 管理外)
+outputs/daily_reports/
+outputs/csv/
+outputs/excel/
+outputs/content_drafts/
+outputs/video_prompts/
+outputs/review_queue/
+# ただし outputs/examples/ は公開可能なサンプル用
+!outputs/examples/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+ENV/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Build artifacts
+*.egg-info/
+build/
+dist/

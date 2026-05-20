@@ -1,0 +1,380 @@
+{
+  "_meta": {
+    "description": "Mock fixtures for X Intelligence MVP. Mix of StructuredPost-like and SearchCitationResult-like items spanning all configured themes.",
+    "generated_for": "mock provider",
+    "item_count": 30
+  },
+  "items": [
+    {
+      "kind": "structured_post",
+      "topic": "ai_agent_market",
+      "post_id": "mock_001",
+      "author": "Andrej Karpathy",
+      "author_handle": "@karpathy",
+      "created_at": "2026-05-19T10:14:00+00:00",
+      "text": "The next frontier for coding agents is not raw capability but operational discipline: who handles tool failures, who reads logs, who reverts. Agents that survive in production look more like SREs than like geniuses.",
+      "metrics": {"likes": 18420, "reposts": 3120, "replies": 412, "views": 1230000},
+      "url": "https://x.com/karpathy/status/mock_001",
+      "source_type_hint": "engineer_dev"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "claude_code",
+      "post_id": "mock_002",
+      "author": "Anthropic",
+      "author_handle": "@AnthropicAI",
+      "created_at": "2026-05-19T07:00:00+00:00",
+      "text": "Claude Code 2.2 ships today with Agent View improvements, faster /loop dispatching, and persistent memory v2 across worktrees. Enterprise admin controls expanded.",
+      "metrics": {"likes": 24100, "reposts": 5210, "replies": 880, "views": 2100000},
+      "url": "https://x.com/AnthropicAI/status/mock_002",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "grok_xai",
+      "post_id": "mock_003",
+      "author": "Elon Musk",
+      "author_handle": "@elonmusk",
+      "created_at": "2026-05-19T03:42:00+00:00",
+      "text": "Grok Imagine v3 video generation now matches Sora on most benchmarks at 1/4 the latency. Premium+ subscribers get unlimited generations this week.",
+      "metrics": {"likes": 94300, "reposts": 18500, "replies": 4120, "views": 8900000},
+      "url": "https://x.com/elonmusk/status/mock_003",
+      "source_type_hint": "founder_executive"
+    },
+    {
+      "kind": "search_citation_result",
+      "topic": "hermes_openclaw",
+      "summary": "Nous Research の Hermes Agent v2.1 が公開された。40+ プロバイダ統一 CLI に加え、Grok / Claude / GPT-5 を OAuth で同一セッション内に共存させる multi-provider mode が新規追加。x_search ツールは Grok 4 経由で動作。",
+      "cited_urls": [
+        "https://x.com/NousResearch/status/mock_004a",
+        "https://github.com/NousResearch/hermes/releases/tag/v2.1",
+        "https://x.com/eshear/status/mock_004b"
+      ],
+      "cited_posts": [
+        {"author_handle": "@NousResearch", "snippet": "Hermes 2.1 is live. Multi-provider OAuth, x_search via Grok 4, image_generate."},
+        {"author_handle": "@eshear", "snippet": "Tested hermes 2.1 multi-provider. Smooth handoff Claude→Grok→GPT-5."}
+      ],
+      "provider_response": "Hermes Agent v2.1 introduces multi-provider OAuth and consolidates X search through Grok 4.",
+      "confidence": 0.82,
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "competing_llms",
+      "post_id": "mock_005",
+      "author": "Sam Altman",
+      "author_handle": "@sama",
+      "created_at": "2026-05-18T22:11:00+00:00",
+      "text": "GPT-5.5 will roll out to Plus users next week. Improvements concentrated in tool use, long-running tasks, and Japanese reasoning.",
+      "metrics": {"likes": 71200, "reposts": 11900, "replies": 3300, "views": 6800000},
+      "url": "https://x.com/sama/status/mock_005",
+      "source_type_hint": "founder_executive"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_infra_vendors",
+      "post_id": "mock_006",
+      "author": "Jensen Huang",
+      "author_handle": "@nvidia",
+      "created_at": "2026-05-18T14:00:00+00:00",
+      "text": "NIM 2.0 ships with OpenAI-compatible endpoints across 40+ open models. Free tier expanded to 5,000 requests/month for developers.",
+      "metrics": {"likes": 33100, "reposts": 8400, "replies": 950, "views": 3200000},
+      "url": "https://x.com/nvidia/status/mock_006",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "competing_llms",
+      "post_id": "mock_007",
+      "author": "Google DeepMind",
+      "author_handle": "@GoogleDeepMind",
+      "created_at": "2026-05-18T11:30:00+00:00",
+      "text": "Gemini 2.5 Ultra leads on long-context coding benchmarks (1M token window, 92.4% pass@1 on SWE-bench-Long). Available in Vertex AI today.",
+      "metrics": {"likes": 28900, "reposts": 7200, "replies": 1100, "views": 2700000},
+      "url": "https://x.com/GoogleDeepMind/status/mock_007",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_infra_vendors",
+      "post_id": "mock_008",
+      "author": "Databricks",
+      "author_handle": "@databricks",
+      "created_at": "2026-05-18T09:00:00+00:00",
+      "text": "Unity Catalog now governs agent tools, not just data. Every agent invocation produces a lineage record. Available on AWS / Azure today, GCP next month.",
+      "metrics": {"likes": 9400, "reposts": 2100, "replies": 230, "views": 480000},
+      "url": "https://x.com/databricks/status/mock_008",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_infra_vendors",
+      "post_id": "mock_009",
+      "author": "Snowflake",
+      "author_handle": "@SnowflakeDB",
+      "created_at": "2026-05-18T08:00:00+00:00",
+      "text": "Cortex Agents (GA) — bring your own Claude / Llama / Mistral while keeping data in Snowflake. Native to Streamlit + Snowpark.",
+      "metrics": {"likes": 7800, "reposts": 1750, "replies": 190, "views": 410000},
+      "url": "https://x.com/SnowflakeDB/status/mock_009",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_governance_data",
+      "post_id": "mock_010",
+      "author": "Stanford HAI",
+      "author_handle": "@StanfordHAI",
+      "created_at": "2026-05-18T05:20:00+00:00",
+      "text": "Latest AI Index: 67% of large enterprises now have AI governance committees, up from 29% last year. Top blocker remains 'unclear ownership between Legal, Security, and Data teams.'",
+      "metrics": {"likes": 5200, "reposts": 1900, "replies": 280, "views": 320000},
+      "url": "https://x.com/StanfordHAI/status/mock_010",
+      "source_type_hint": "media"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "career_consulting",
+      "post_id": "mock_011",
+      "author": "Hiring Manager AWS Japan",
+      "author_handle": "@aws_japan_hire",
+      "created_at": "2026-05-17T22:00:00+00:00",
+      "text": "AWS Japan は週5日出社のポリシーを継続。新規ロール（GenAI Specialist SA, GTM Manager）は全て Tokyo / Osaka onsite 必須。RTO 例外なし。",
+      "metrics": {"likes": 1200, "reposts": 410, "replies": 188, "views": 92000},
+      "url": "https://x.com/aws_japan_hire/status/mock_011",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "career_consulting",
+      "post_id": "mock_012",
+      "author": "Tech Sales Insider",
+      "author_handle": "@techsalesjp",
+      "created_at": "2026-05-17T19:30:00+00:00",
+      "text": "外資系SaaSのGTM職、AIスペシャリスト枠が一気に増加。Snowflake / Databricks / Anthropic / Mistral が日本法人で同時募集。Sponsorship 可能なポジション多数。",
+      "metrics": {"likes": 880, "reposts": 290, "replies": 75, "views": 65000},
+      "url": "https://x.com/techsalesjp/status/mock_012",
+      "source_type_hint": "media"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "claude_code",
+      "post_id": "mock_013",
+      "author": "Cat Hicks",
+      "author_handle": "@grimalkina",
+      "created_at": "2026-05-17T15:10:00+00:00",
+      "text": "Empirical finding from our developer wellbeing study: teams using coding agents report 23% higher 'flow state' frequency, but also 14% more 'context loss' incidents. The variance is in onboarding quality, not the tool.",
+      "metrics": {"likes": 4100, "reposts": 1080, "replies": 320, "views": 280000},
+      "url": "https://x.com/grimalkina/status/mock_013",
+      "source_type_hint": "engineer_dev"
+    },
+    {
+      "kind": "search_citation_result",
+      "topic": "grok_xai",
+      "summary": "xAI が Responses API + x_search tool の組み合わせで企業向け検索エージェント機能を強化。価格は $0.30 per 1K tool calls とアナウンスされている。",
+      "cited_urls": [
+        "https://x.com/xai/status/mock_014a",
+        "https://docs.x.ai/api/tools/x-search"
+      ],
+      "cited_posts": [
+        {"author_handle": "@xai", "snippet": "x_search tool now generally available via Responses API."}
+      ],
+      "provider_response": "xAI announced GA of x_search tool via Responses API with $0.30 / 1K calls pricing.",
+      "confidence": 0.74,
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "competing_llms",
+      "post_id": "mock_015",
+      "author": "Satya Nadella",
+      "author_handle": "@satyanadella",
+      "created_at": "2026-05-17T12:00:00+00:00",
+      "text": "Copilot is now used by 78% of Fortune 500. The next phase is agent orchestration across M365, Dynamics, and Foundry — not just chat.",
+      "metrics": {"likes": 42000, "reposts": 9800, "replies": 1900, "views": 4200000},
+      "url": "https://x.com/satyanadella/status/mock_015",
+      "source_type_hint": "founder_executive"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_governance_data",
+      "post_id": "mock_016",
+      "author": "EU AI Office",
+      "author_handle": "@EUAIOffice",
+      "created_at": "2026-05-17T09:30:00+00:00",
+      "text": "Updated guidance on GPAI obligations under the AI Act. Article 53 transparency requirements clarified — applies from August 2026 to all providers serving EU users.",
+      "metrics": {"likes": 2800, "reposts": 1900, "replies": 410, "views": 240000},
+      "url": "https://x.com/EUAIOffice/status/mock_016",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_agent_market",
+      "post_id": "mock_017",
+      "author": "Simon Willison",
+      "author_handle": "@simonw",
+      "created_at": "2026-05-17T06:00:00+00:00",
+      "text": "Benchmarked 6 coding agents over 50 real tickets. Claude Code wins on multi-file refactors, Cursor on inline edits, Codex on greenfield. Aider still best for git-discipline.",
+      "metrics": {"likes": 8900, "reposts": 2400, "replies": 540, "views": 620000},
+      "url": "https://x.com/simonw/status/mock_017",
+      "source_type_hint": "engineer_dev"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "hermes_openclaw",
+      "post_id": "mock_018",
+      "author": "Nous Research",
+      "author_handle": "@NousResearch",
+      "created_at": "2026-05-16T20:00:00+00:00",
+      "text": "Hermes Agent 2.1 release notes: multi-provider OAuth (Claude / Grok / GPT-5), unified tool registry, MCP server compat, x_search via Grok 4.",
+      "metrics": {"likes": 11200, "reposts": 2900, "replies": 380, "views": 720000},
+      "url": "https://x.com/NousResearch/status/mock_018",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_infra_vendors",
+      "post_id": "mock_019",
+      "author": "AWS",
+      "author_handle": "@awscloud",
+      "created_at": "2026-05-16T18:00:00+00:00",
+      "text": "Bedrock AgentCore now supports cross-account agent invocation with fine-grained IAM. Available in 12 regions, Tokyo and Osaka included.",
+      "metrics": {"likes": 6700, "reposts": 1500, "replies": 220, "views": 380000},
+      "url": "https://x.com/awscloud/status/mock_019",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "grok_xai",
+      "post_id": "mock_020",
+      "author": "xAI",
+      "author_handle": "@xai",
+      "created_at": "2026-05-16T15:00:00+00:00",
+      "text": "Grok 4 fine-tuning API enters private preview. Up to 32K context for fine-tunes, Japanese corpora supported natively.",
+      "metrics": {"likes": 14200, "reposts": 3500, "replies": 620, "views": 980000},
+      "url": "https://x.com/xai/status/mock_020",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "claude_code",
+      "post_id": "mock_021",
+      "author": "Boris Cherny",
+      "author_handle": "@bcherny",
+      "created_at": "2026-05-16T13:00:00+00:00",
+      "text": "PSA for Claude Code users: pin a CLAUDE.md per project, keep memory files small, use /loop sparingly. The sharpest gains come from disciplined context curation.",
+      "metrics": {"likes": 3200, "reposts": 720, "replies": 150, "views": 210000},
+      "url": "https://x.com/bcherny/status/mock_021",
+      "source_type_hint": "engineer_dev"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "career_consulting",
+      "post_id": "mock_022",
+      "author": "Microsoft Japan Careers",
+      "author_handle": "@msjapan_jobs",
+      "created_at": "2026-05-16T10:00:00+00:00",
+      "text": "Strategic ATS — Automotive Sector Specialist (Tokyo). Hybrid 3 days/week. Sponsorship available. Japanese + business English required.",
+      "metrics": {"likes": 480, "reposts": 110, "replies": 32, "views": 28000},
+      "url": "https://x.com/msjapan_jobs/status/mock_022",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_governance_data",
+      "post_id": "mock_023",
+      "author": "Jay Alammar",
+      "author_handle": "@jayalammar",
+      "created_at": "2026-05-16T07:00:00+00:00",
+      "text": "Governance != restriction. The mature stack treats policies as code that agents consume, not as a PDF that humans hope to follow.",
+      "metrics": {"likes": 4900, "reposts": 1200, "replies": 230, "views": 290000},
+      "url": "https://x.com/jayalammar/status/mock_023",
+      "source_type_hint": "engineer_dev"
+    },
+    {
+      "kind": "search_citation_result",
+      "topic": "ai_agent_market",
+      "summary": "ガートナーの 2026 Hype Cycle で AI Agent が Peak of Inflated Expectations から Trough of Disillusionment に移行。具体的 ROI が見えるユースケースは10-15%に留まる。",
+      "cited_urls": [
+        "https://x.com/Gartner_inc/status/mock_024a",
+        "https://www.gartner.com/en/research/methodologies/gartner-hype-cycle"
+      ],
+      "cited_posts": [
+        {"author_handle": "@Gartner_inc", "snippet": "AI Agents move into Trough of Disillusionment per 2026 Hype Cycle."}
+      ],
+      "provider_response": "Gartner 2026 places AI Agents in Trough of Disillusionment with only 10-15% production ROI cases.",
+      "confidence": 0.71,
+      "source_type_hint": "media"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "competing_llms",
+      "post_id": "mock_025",
+      "author": "Demis Hassabis",
+      "author_handle": "@demishassabis",
+      "created_at": "2026-05-15T18:00:00+00:00",
+      "text": "Long-context coding is the new battleground. Tool-use reliability matters more than raw benchmark scores at this stage.",
+      "metrics": {"likes": 22100, "reposts": 4900, "replies": 880, "views": 1900000},
+      "url": "https://x.com/demishassabis/status/mock_025",
+      "source_type_hint": "founder_executive"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_infra_vendors",
+      "post_id": "mock_026",
+      "author": "Lambda Labs",
+      "author_handle": "@LambdaAPI",
+      "created_at": "2026-05-15T14:00:00+00:00",
+      "text": "H200 instances down to $1.99/hour on-demand. Reserved at $1.10/hour. Useful for Voice-Pro / Stable Diffusion / fine-tunes.",
+      "metrics": {"likes": 6100, "reposts": 1900, "replies": 240, "views": 380000},
+      "url": "https://x.com/LambdaAPI/status/mock_026",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_agent_market",
+      "post_id": "mock_027",
+      "author": "Anonymous Investor",
+      "author_handle": "@vcrumormill",
+      "created_at": "2026-05-15T11:00:00+00:00",
+      "text": "Heard from 3 sources: a major Series C agent infra startup is about to announce a $50B valuation. Watch for the news this week.",
+      "metrics": {"likes": 1200, "reposts": 380, "replies": 95, "views": 78000},
+      "url": "https://x.com/vcrumormill/status/mock_027",
+      "source_type_hint": "unknown"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "grok_xai",
+      "post_id": "mock_028",
+      "author": "Linus Ekenstam",
+      "author_handle": "@LinusEkenstam",
+      "created_at": "2026-05-15T08:00:00+00:00",
+      "text": "Grok Imagine compared to Sora and Veo on 12 prompts. Grok wins on speed, Sora on cinematography, Veo on dialogue lip-sync. Use case dependent.",
+      "metrics": {"likes": 14800, "reposts": 3200, "replies": 540, "views": 880000},
+      "url": "https://x.com/LinusEkenstam/status/mock_028",
+      "source_type_hint": "influencer"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "career_consulting",
+      "post_id": "mock_029",
+      "author": "BCG GAMMA",
+      "author_handle": "@BCG_GAMMA",
+      "created_at": "2026-05-15T05:00:00+00:00",
+      "text": "Now hiring AI strategy consultants in APAC. Hybrid model. Strong preference for candidates with cloud GTM experience.",
+      "metrics": {"likes": 920, "reposts": 240, "replies": 41, "views": 52000},
+      "url": "https://x.com/BCG_GAMMA/status/mock_029",
+      "source_type_hint": "official"
+    },
+    {
+      "kind": "structured_post",
+      "topic": "ai_governance_data",
+      "post_id": "mock_030",
+      "author": "Bruce Schneier",
+      "author_handle": "@schneierblog",
+      "created_at": "2026-05-15T02:00:00+00:00",
+      "text": "Agent identity is becoming the new IAM problem. If your agent can act as you across 30 SaaS tools, your auth perimeter is now wherever the agent runs — not your SSO.",
+      "metrics": {"likes": 8100, "reposts": 2300, "replies": 420, "views": 580000},
+      "url": "https://x.com/schneierblog/status/mock_030",
+      "source_type_hint": "engineer_dev"
+    }
+  ]
+}

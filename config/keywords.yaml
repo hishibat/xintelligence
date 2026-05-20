@@ -1,0 +1,77 @@
+# =====================================================================
+# X Search Keyword Sets
+# =====================================================================
+# 各テーマごとにキーワードをグルーピング。CLI の --topic で個別実行可能、
+# --topic all で全部走査。
+# =====================================================================
+
+themes:
+  ai_agent:
+    description: "AI Agent ・ Coding Agent 全般"
+    keywords:
+      - "AI agent"
+      - "coding agent"
+      - "autonomous agent"
+      - "agentic AI"
+      - "agent framework"
+
+  claude_code:
+    description: "Claude Code / Anthropic 関連"
+    keywords:
+      - "Claude Code"
+      - "Claude API"
+      - "Anthropic"
+      - "claude-code"
+      - "claude opus"
+
+  hermes_openclaw:
+    description: "Hermes Agent / OpenClaw"
+    keywords:
+      - "Hermes Agent"
+      - "Nous Research Hermes"
+      - "OpenClaw"
+
+  grok_xai:
+    description: "Grok / xAI / Grok Imagine"
+    keywords:
+      - "Grok"
+      - "xAI"
+      - "Grok Imagine"
+      - "Grok 4"
+      - "Grok-2-image"
+
+  competing_llms:
+    description: "ChatGPT / Gemini / Copilot"
+    keywords:
+      - "ChatGPT"
+      - "GPT-5"
+      - "Gemini"
+      - "Microsoft Copilot"
+      - "OpenAI"
+
+  ai_infra_vendors:
+    description: "NVIDIA / AWS / Databricks / Snowflake"
+    keywords:
+      - "NVIDIA NIM"
+      - "NVIDIA AI"
+      - "AWS Bedrock"
+      - "Databricks"
+      - "Snowflake Cortex"
+
+  ai_governance_data:
+    description: "AI governance / Data management"
+    keywords:
+      - "AI governance"
+      - "data governance"
+      - "data management"
+      - "AI compliance"
+      - "model risk"
+
+  career_consulting:
+    description: "Consulting / Career transition / Tech sales / Enterprise IT"
+    keywords:
+      - "tech sales"
+      - "GTM AI"
+      - "enterprise IT AI"
+      - "consulting AI"
+      - "career transition AI"
