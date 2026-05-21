@@ -6,6 +6,44 @@ X 上の重要情報を効率的に収集 → 重要度判定 → Markdown / CSV
 > 本リポジトリは X 投稿・LinkedIn 投稿・Note 公開を **行いません**。draft text の生成までで停止し、`outputs/review_queue/` への手動移動でレビュー状態を管理します。投稿アクションは人間が手動で実行してください。
 > この方針は `tests/test_no_auto_posting_capability.py` で **negative test** として常時検証されます（posting 系の関数名・write endpoint URL・posting SDK の混入を CI で防止）。
 
+## 標準運用方針（2026-05-21 — Hermes IV 検証後に確定）
+
+| 用途 | 推奨コマンド |
+|---|---|
+| **検証 (validation)** | `--search-fallback none` で fail-loud。新 provider / 新 prompt を実機検証するとき |
+| **日次運用 (daily)** | `--search-fallback mock` で resilient。一部 query が失敗しても他で artifact が出る |
+| **実行単位** | **topic 分割**。1 コマンド = 1 topic (3-5 query × 30-60s ≈ 2-5 分) |
+| **`--topic all` 一括** | **原則非推奨**。週次集約 / 手動バッチ用途のみ。実時間 20-60 分、途中失敗時の影響範囲が大きい |
+
+### 日次運用の典型コマンド (topic 分割 / 並列)
+
+```powershell
+# PowerShell から topic 別に並列起動
+foreach ($t in @("ai_agent","claude_code","hermes_openclaw","grok_xai",
+                 "competing_llms","ai_infra_vendors","ai_governance_data",
+                 "career_consulting")) {
+    Start-Process powershell -ArgumentList @(
+        "-NoExit", "-Command",
+        "cd 'C:\Users\Hideyuki Shibata\workspace\company\Content_Production\x-intelligence'; " +
+        "python scripts\run_daily.py --provider hermes --llm-provider claude " +
+        "--search-fallback mock --topic $t --date $(Get-Date -Format 'yyyy-MM-dd')"
+    )
+}
+```
+
+### Citation 品質シグナル
+
+各 run の `report.md` および `run_manifest.json` に以下を出力。**毎朝レビュー時の最初のチェック項目**として使用:
+
+- `citationless_items_count` — citation_urls が空の SearchCitationResult 件数
+- `citationless_ratio` — 全 deduped items に対する比率 (0.0-1.0)
+- `topics_with_high_citationless_ratio` — 50% 超の topic 一覧 (要再実行 / prompt 調整シグナル)
+
+経験則:
+- 🟢 `< 20%` → 健全
+- 🟡 `20-50%` → 要観察
+- 🔴 `≥ 50%` → 該当 topic だけ prompt 強化または再実行
+
 ## 現時点の安定版 MVP でできること（2026-05-21）
 
 | 項目 | 状態 |

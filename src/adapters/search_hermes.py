@@ -46,14 +46,22 @@ X_URL_PATTERN = re.compile(
 
 DEFAULT_CITATION_CONSTRAINT = (
     "\n\nConstraint:\n"
-    "- You MUST call the x_search tool and use real X.com results.\n"
-    "- Reply in 3-5 short sentences.\n"
-    "- End your reply with a \"Sources:\" block listing every X.com URL you "
-    "used, one URL per line.\n"
-    "- Each URL must be of the form https://x.com/<handle>/status/<id> or "
-    "https://x.com/i/status/<id> — no shortened links, no other domains.\n"
-    "- If x_search returned no relevant posts, write \"Sources: (none)\" and "
-    "say so explicitly."
+    "- You MUST call the x_search tool. Do NOT answer from your internal "
+    "knowledge alone.\n"
+    "- For topics about Grok, xAI, Grok Imagine, Grok 4, xAI API, or this "
+    "model itself: do NOT speak for yourself. Use x_search to find what "
+    "official accounts, engineers, users, or credible third parties are "
+    "saying on X about that topic. Return only findings that are supported "
+    "by X post URLs.\n"
+    "- Reply in 3-5 short sentences, focusing on what real X posts say.\n"
+    "- End with a \"Sources:\" block listing every X post URL you used, one "
+    "URL per line.\n"
+    "- Use ONLY https://x.com/<handle>/status/<id> or "
+    "https://x.com/i/status/<id> URLs in the Sources block. No shortened "
+    "links (t.co), no other domains.\n"
+    "- If x_search returned no relevant X posts, write exactly:\n"
+    "  Sources: none found\n"
+    "  …and explicitly say in the body that no relevant X posts were found."
 )
 
 

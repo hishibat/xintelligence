@@ -29,6 +29,9 @@ def write_daily_report_md(
     fallback_used: list[str],
     warnings: list[str],
     run_id: str = "",
+    citationless_items_count: int = 0,
+    citationless_ratio: float = 0.0,
+    topics_with_high_citationless_ratio: list[str] | None = None,
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     lines: list[str] = []
@@ -41,6 +44,18 @@ def write_daily_report_md(
     )
     if warnings:
         lines.append(f"- ⚠️ warnings: {len(warnings)} 件 (manifest.warnings 参照)")
+    # Citation quality signals (esp. relevant for hermes provider)
+    cl_ratio_pct = round(citationless_ratio * 100, 1)
+    cl_emoji = "🔴" if citationless_ratio >= 0.5 else ("🟡" if citationless_ratio >= 0.2 else "🟢")
+    lines.append(
+        f"- {cl_emoji} citationless_items: {citationless_items_count} "
+        f"({cl_ratio_pct}%)"
+    )
+    if topics_with_high_citationless_ratio:
+        lines.append(
+            f"- 🔴 topics_with_high_citationless_ratio: "
+            f"{', '.join(topics_with_high_citationless_ratio)}"
+        )
     lines.append("\n## Top 10\n")
     for i, item in enumerate(top10, 1):
         lines.append(f"### {i}. score={item.score.total} ({item.score.method})")

@@ -262,6 +262,11 @@ class RunManifest:
     errors: list[str] = field(default_factory=list)
     missing_fields_summary: dict[str, int] = field(default_factory=dict)
     fallback_used: list[str] = field(default_factory=list)
+    # Quality signals — citationless items are SearchCitationResult posts
+    # where the LLM answered without invoking x_search and returned no URL.
+    citationless_items_count: int = 0
+    citationless_ratio: float = 0.0
+    topics_with_high_citationless_ratio: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

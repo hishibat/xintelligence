@@ -22,6 +22,36 @@ def summarize_missing(items: list[Post]) -> dict[str, int]:
     return dict(counter)
 
 
+def summarize_citationless(
+    items: list[Post], *, high_ratio_threshold: float = 0.5
+) -> tuple[int, float, list[str]]:
+    """Count items whose citation_urls() is empty.
+
+    Returns (count, ratio, high_ratio_topics).
+    A topic appears in high_ratio_topics if it has ≥ 1 item AND > threshold
+    of its items are citationless. Useful for catching whole-topic quality
+    problems like the grok_xai self-referential failure mode.
+    """
+    if not items:
+        return 0, 0.0, []
+    citationless = [p for p in items if not p.citation_urls()]
+    count = len(citationless)
+    ratio = count / len(items)
+
+    by_topic_total: Counter[str] = Counter()
+    by_topic_zero: Counter[str] = Counter()
+    for p in items:
+        t = (p.topic or "uncategorized")
+        by_topic_total[t] += 1
+        if not p.citation_urls():
+            by_topic_zero[t] += 1
+    high_ratio: list[str] = [
+        t for t, n in by_topic_zero.items()
+        if by_topic_total[t] > 0 and (n / by_topic_total[t]) > high_ratio_threshold
+    ]
+    return count, round(ratio, 3), sorted(high_ratio)
+
+
 def build_manifest(
     *,
     provider: str,
@@ -36,6 +66,7 @@ def build_manifest(
     fallback_used: list[str],
     fixture_hash: str = "",
 ) -> RunManifest:
+    citationless_count, citationless_ratio, high_ratio_topics = summarize_citationless(deduped_items)
     return RunManifest(
         run_id=new_run_id(),
         executed_at=datetime.now(timezone.utc),
@@ -51,6 +82,9 @@ def build_manifest(
         errors=errors,
         missing_fields_summary=summarize_missing(deduped_items),
         fallback_used=fallback_used,
+        citationless_items_count=citationless_count,
+        citationless_ratio=citationless_ratio,
+        topics_with_high_citationless_ratio=high_ratio_topics,
     )
 
 

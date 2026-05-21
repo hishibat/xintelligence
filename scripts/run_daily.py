@@ -273,6 +273,9 @@ def main(argv: list[str] | None = None) -> int:
         fallback_used=fallback_used,
         warnings=warnings_buf,
         run_id=manifest.run_id,
+        citationless_items_count=manifest.citationless_items_count,
+        citationless_ratio=manifest.citationless_ratio,
+        topics_with_high_citationless_ratio=manifest.topics_with_high_citationless_ratio,
     )
     write_manifest(manifest, daily_dir / "run_manifest.json")
     write_csv(base_out / "csv" / f"{date_str}.csv", scored)
