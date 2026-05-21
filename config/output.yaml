@@ -34,6 +34,21 @@ scoring:
     x_fit: 0.15
   top_n: 10
 
+# --- LLM Token Budgets (per use) -------------------------------------
+# Each generator looks up its slot here and passes it to llm.complete(...).
+# Increase if you see content cut off near max length.
+llm:
+  max_tokens:
+    why_important: 200      # per-Top-item short comment
+    trend_summary: 800
+    trend_angles: 400       # the bullet-list "切り口" follow-up
+    x_post: 500
+    x_thread: 1000
+    note_outline: 1600
+    linkedin: 1200
+    video_concept: 200
+    video_scene: 400
+
 # --- Content Drafts --------------------------------------------------
 content:
   tones: ["professional", "insightful", "consulting_style", "casual", "bold_opinion"]
@@ -46,6 +61,13 @@ content:
     require_originality_note: true
     needs_review_default: true
     forbid_verbatim_copy: true
+  # LinkedIn-only length control. Switch length_mode to short/standard/long.
+  linkedin:
+    length_mode: "standard"        # short | standard | long
+    length_bounds:
+      short:    {min_words: 300,  max_words: 500,  guidance: "tight thought-piece"}
+      standard: {min_words: 600,  max_words: 900,  guidance: "business essay"}
+      long:     {min_words: 1200, max_words: 1500, guidance: "in-depth analysis"}
 
 # --- Video Prompts ---------------------------------------------------
 video:

@@ -31,11 +31,25 @@ CHANNEL_PROMPTS: dict[str, str] = {
         "・タイトル候補3つ\n・見出し構成（最大6見出し）\n・冒頭リード 80 字\n"
         "丸写し禁止。柴田さんの視点（タイ在住・enterprise AI / consulting 経験）からの切り口を必ず入れてください。"
     ),
-    "linkedin": (
-        "次の話題について、{tone} なトーンで LinkedIn 投稿案を 1 本作ってください。"
-        "英語で 600-900 字。ビジネス文脈で、断定を避けつつ自分の見解を述べてください。"
-    ),
+    # linkedin prompt is built dynamically from length_bounds — see _build_linkedin_prompt
+    "linkedin": "__BUILT_DYNAMICALLY__",
 }
+
+DEFAULT_LINKEDIN_BOUNDS = {
+    "short":    {"min_words": 300,  "max_words": 500,  "guidance": "tight thought-piece"},
+    "standard": {"min_words": 600,  "max_words": 900,  "guidance": "business essay"},
+    "long":     {"min_words": 1200, "max_words": 1500, "guidance": "in-depth analysis"},
+}
+
+
+def _build_linkedin_prompt(tone: str, length_mode: str, length_bounds: dict[str, dict]) -> str:
+    bounds = length_bounds.get(length_mode) or DEFAULT_LINKEDIN_BOUNDS.get(length_mode) or DEFAULT_LINKEDIN_BOUNDS["standard"]
+    return (
+        f"次の話題について、{tone} なトーンで LinkedIn 投稿案を 1 本作ってください。"
+        f"英語で **{bounds['min_words']}〜{bounds['max_words']} words** ({bounds['guidance']})。"
+        f"必ずこの語数レンジに収めること。ビジネス文脈で、断定を避けつつ自分の見解を述べてください。"
+        f"本文以外のメタコメント（「Here's a draft...」「---」「注：」等）は禁止。投稿本文のみを返す。"
+    )
 
 
 def _too_similar(source_text: str, draft_text: str, threshold: float = 0.80) -> bool:
@@ -67,12 +81,17 @@ def generate_drafts(
     channels: list[str],
     llm: LLMProvider,
     per_channel: int = 1,
+    max_tokens_by_channel: dict[str, int] | None = None,
+    linkedin_length_mode: str = "standard",
+    linkedin_length_bounds: dict[str, dict] | None = None,
 ) -> list[ContentDraft]:
     drafts: list[ContentDraft] = []
-    # use top-scored items as inspiration; one item per channel slot
     sources = sorted(scored, key=lambda x: x.score.total, reverse=True)
     if not sources:
         return drafts
+
+    mt = max_tokens_by_channel or {}
+    bounds = linkedin_length_bounds or DEFAULT_LINKEDIN_BOUNDS
 
     tone = tones[0] if tones else "insightful"
     for ch in channels:
@@ -84,22 +103,30 @@ def generate_drafts(
             source_text = post.primary_text()
             source_summary = source_text.split("\n")[0][:200]
             my_angle = _build_my_angle(post, profile)
-            prompt_template = CHANNEL_PROMPTS.get(ch, CHANNEL_PROMPTS["x_post"])
-            prompt = (
-                prompt_template.format(tone=tone)
-                + "\n\n[元投稿の要旨]\n"
-                + source_summary
-                + "\n\n[私の切り口]\n"
-                + my_angle
-            )
 
-            draft_text = llm.complete(prompt, max_tokens=800, temperature=0.5).strip()
+            if ch == "linkedin":
+                prompt_template = _build_linkedin_prompt(tone, linkedin_length_mode, bounds)
+                prompt = (
+                    prompt_template
+                    + "\n\n[元投稿の要旨]\n" + source_summary
+                    + "\n\n[私の切り口]\n" + my_angle
+                )
+            else:
+                prompt_template = CHANNEL_PROMPTS.get(ch, CHANNEL_PROMPTS["x_post"])
+                prompt = (
+                    prompt_template.format(tone=tone)
+                    + "\n\n[元投稿の要旨]\n" + source_summary
+                    + "\n\n[私の切り口]\n" + my_angle
+                )
+
+            channel_max_tokens = mt.get(ch, 800)
+            draft_text = llm.complete(prompt, max_tokens=channel_max_tokens, temperature=0.5).strip()
             originality_note = "LLM draft. 自分の切り口を1要素以上加えること前提。"
             needs_review = True
 
             if _too_similar(source_text, draft_text):
                 retry_prompt = prompt + "\n\n注意: 上の元投稿の語尾だけ変えるのは禁止。論点を抽象化し、自分の意見と並べて書いてください。"
-                draft_text = llm.complete(retry_prompt, max_tokens=800, temperature=0.7).strip()
+                draft_text = llm.complete(retry_prompt, max_tokens=channel_max_tokens, temperature=0.7).strip()
                 originality_note = "1st draft was too close to source; regenerated with stricter rephrase prompt."
 
             note_titles: list[str] = []

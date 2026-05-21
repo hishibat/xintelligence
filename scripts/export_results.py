@@ -28,14 +28,17 @@ def write_daily_report_md(
     trends: list[TrendSummary],
     fallback_used: list[str],
     warnings: list[str],
+    run_id: str = "",
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     lines: list[str] = []
     lines.append(f"# X Intelligence Daily Report — {date_str}\n")
+    lines.append(f"- run_id: `{run_id}`" if run_id else "- run_id: `(unset)`")
     lines.append(f"- provider: `{provider}`")
     lines.append(f"- llm_provider: `{llm_provider}`")
-    if fallback_used:
-        lines.append(f"- ⚠️ fallback_used: {', '.join(fallback_used)}")
+    lines.append(
+        f"- fallback_used: {', '.join(fallback_used) if fallback_used else '_(none — real LLM was reached)_'}"
+    )
     if warnings:
         lines.append(f"- ⚠️ warnings: {len(warnings)} 件 (manifest.warnings 参照)")
     lines.append("\n## Top 10\n")

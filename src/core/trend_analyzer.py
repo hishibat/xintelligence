@@ -53,6 +53,8 @@ def analyze_topic(
     *,
     time_range: str,
     llm: LLMProvider,
+    max_tokens_summary: int = 800,
+    max_tokens_angles: int = 400,
 ) -> TrendSummary:
     if not items:
         return TrendSummary(
@@ -78,13 +80,13 @@ def analyze_topic(
         f"必要に応じて末尾に [要事実確認] を付けてください。\n\n"
         + "\n".join(f"- {p}" for p in main_points)
     )
-    short_jp = llm.complete(prompt, max_tokens=300, temperature=0.3).strip()
+    short_jp = llm.complete(prompt, max_tokens=max_tokens_summary, temperature=0.3).strip()
 
     angles_prompt = (
         f"上の話題から、note記事 / X 投稿に使える切り口を 3〜5 個、"
         f"短い日本語で箇条書きしてください。煽り表現は避けてください。"
     )
-    angles_raw = llm.complete(prompt + "\n\n" + angles_prompt, max_tokens=400, temperature=0.5)
+    angles_raw = llm.complete(prompt + "\n\n" + angles_prompt, max_tokens=max_tokens_angles, temperature=0.5)
     content_angles = _parse_bullets(angles_raw)[:5]
 
     return TrendSummary(
@@ -121,9 +123,15 @@ def analyze_all(
     topic_labels: dict[str, str],
     time_range: str,
     llm: LLMProvider,
+    max_tokens_summary: int = 800,
+    max_tokens_angles: int = 400,
 ) -> list[TrendSummary]:
     results: list[TrendSummary] = []
     for tid, items in items_by_topic.items():
         label = topic_labels.get(tid, tid)
-        results.append(analyze_topic(tid, label, items, time_range=time_range, llm=llm))
+        results.append(analyze_topic(
+            tid, label, items, time_range=time_range, llm=llm,
+            max_tokens_summary=max_tokens_summary,
+            max_tokens_angles=max_tokens_angles,
+        ))
     return results

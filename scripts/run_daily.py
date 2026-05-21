@@ -144,13 +144,18 @@ def main(argv: list[str] | None = None) -> int:
     scored = score_all(tagged, profile=cfg.profile or {}, weights=weights)
     top = top_n(scored, n=top_count)
 
+    # --- LLM token budgets (config-driven) ---------------------------------
+    llm_cfg = (cfg.output or {}).get("llm", {}) or {}
+    mt = (llm_cfg.get("max_tokens") or {})
+
     # attach a short "why important" comment
+    why_tokens = int(mt.get("why_important", 200))
     for item in top:
         text = item.post.primary_text()[:200]
         item.why_important = llm.complete(
             "Why is this important for a tech-sales/consulting professional pivoting "
             f"to a hyperscaler/AI vendor in Japan? Answer in 1-2 short JP sentences.\n\n{text}",
-            max_tokens=180,
+            max_tokens=why_tokens,
             temperature=0.3,
         ).strip()
 
@@ -160,10 +165,15 @@ def main(argv: list[str] | None = None) -> int:
     for s in scored:
         tid = s.post.topic or "uncategorized"
         items_by_topic.setdefault(tid, []).append(s)
-    trends = analyze_all(items_by_topic, topic_labels=topic_labels, time_range=time_range, llm=llm)
+    trends = analyze_all(
+        items_by_topic, topic_labels=topic_labels, time_range=time_range, llm=llm,
+        max_tokens_summary=int(mt.get("trend_summary", 800)),
+        max_tokens_angles=int(mt.get("trend_angles", 400)),
+    )
 
     # --- content drafts -----------------------------------------------------
     content_cfg = (cfg.output or {}).get("content", {}) or {}
+    linkedin_cfg = (content_cfg.get("linkedin") or {})
     drafts = generate_drafts(
         top,
         profile=cfg.profile or {},
@@ -171,6 +181,14 @@ def main(argv: list[str] | None = None) -> int:
         channels=content_cfg.get("channels", ["x_post", "x_thread", "note_outline", "linkedin"]),
         llm=llm,
         per_channel=int(content_cfg.get("drafts_per_channel", 1)),
+        max_tokens_by_channel={
+            "x_post": int(mt.get("x_post", 500)),
+            "x_thread": int(mt.get("x_thread", 1000)),
+            "note_outline": int(mt.get("note_outline", 1600)),
+            "linkedin": int(mt.get("linkedin", 1200)),
+        },
+        linkedin_length_mode=str(linkedin_cfg.get("length_mode", "standard")),
+        linkedin_length_bounds=linkedin_cfg.get("length_bounds"),
     )
 
     # --- video prompts ------------------------------------------------------
@@ -180,6 +198,8 @@ def main(argv: list[str] | None = None) -> int:
         trends=trends,
         use_cases=video_cfg.get("use_cases", ["note_header", "x_short", "linkedin_visual", "youtube_shorts"]),
         llm=llm,
+        max_tokens_concept=int(mt.get("video_concept", 200)),
+        max_tokens_scene=int(mt.get("video_scene", 400)),
     )
 
     # --- outputs ------------------------------------------------------------
@@ -216,6 +236,7 @@ def main(argv: list[str] | None = None) -> int:
         trends=trends,
         fallback_used=fallback_used,
         warnings=warnings_buf,
+        run_id=manifest.run_id,
     )
     write_manifest(manifest, daily_dir / "run_manifest.json")
     write_csv(base_out / "csv" / f"{date_str}.csv", scored)

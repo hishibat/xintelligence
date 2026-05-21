@@ -6,6 +6,38 @@ X 上の重要情報を効率的に収集 → 重要度判定 → Markdown / CSV
 > 本リポジトリは X 投稿・LinkedIn 投稿・Note 公開を **行いません**。draft text の生成までで停止し、`outputs/review_queue/` への手動移動でレビュー状態を管理します。投稿アクションは人間が手動で実行してください。
 > この方針は `tests/test_no_auto_posting_capability.py` で **negative test** として常時検証されます（posting 系の関数名・write endpoint URL・posting SDK の混入を CI で防止）。
 
+## 現時点の安定版 MVP でできること（2026-05-21）
+
+| 項目 | 状態 |
+|---|---|
+| mock data + Claude LLM で E2E 運用 | ✅ 動作確認済 (`--provider mock --llm-provider claude`) |
+| 本物の X 検索 (X API v2) | ❌ 未実装。`search_x_api.py` は stub |
+| Hermes Agent 経由の X 検索 | ❌ 未実装。`search_hermes.py` は stub。次フェーズ |
+| xAI Responses + x_search 経由 | ❌ 未実装。`search_xai.py` は stub。次フェーズ |
+| LLM 切替 (Claude / mock / Grok) | 🟡 Claude / mock 実装済、Grok stub |
+| 自動投稿 | ❌ 未実装 (恒久的に実装しない方針)。`tests/test_no_auto_posting_capability.py` で常時検証 |
+| Human review gate (`needs_review`) | ✅ 必須。全 draft に `True` 付与 |
+| Fact-check tagging (`verification_status` / `risk_flags`) | ✅ 自動付与 |
+| LLM トークン予算の channel 別 config | ✅ `config/output.yaml::llm.max_tokens` で制御 |
+| LinkedIn 投稿の length モード (short/standard/long) | ✅ `config/output.yaml::content.linkedin.length_mode` |
+| Video prompt の用途別品質 (静止画/動画) | ✅ note_header=静止画、x_short/youtube_shorts=動画、linkedin_visual=静止画 |
+| reproducibility (`config_hash` + `fixture_hash`) | ✅ `run_manifest.json` で記録 |
+| silent fallback 防止 | ✅ `fallback_used` + `warnings` で明示、`check_claude_llm.py` は fallback 禁止 |
+
+## LLM トークン予算 (デフォルト値)
+
+`config/output.yaml::llm.max_tokens` で制御。MVP の既定値:
+
+| 用途 | デフォルト max_tokens | 用途 | デフォルト max_tokens |
+|---|---|---|---|
+| `why_important` | 200 | `x_thread` | 1000 |
+| `trend_summary` | 800 | `note_outline` | 1600 |
+| `trend_angles` | 400 | `linkedin` | 1200 |
+| `x_post` | 500 | `video_concept` | 200 |
+| | | `video_scene` | 400 |
+
+note_outline が途中切れする場合は `note_outline: 2000` 等に増やす。
+
 ## このリポジトリの目的
 
 - 毎朝 1 コマンドで「今日見るべき AI / テック関連 X 投稿 Top 10 + トレンド要約 + X / Note / LinkedIn 投稿案 + Grok Imagine 用画像/動画プロンプト」を取り出す
