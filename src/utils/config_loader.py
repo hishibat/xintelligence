@@ -72,7 +72,13 @@ def load_config(env_file: Path | None = None) -> AppConfig:
     if env_file is None:
         env_file = PROJECT_ROOT / ".env"
     if env_file.exists():
-        load_dotenv(env_file, override=False)
+        # override=True intentional. The .env file in this project root is
+        # the authoritative source for project-scoped secrets. Shells (or
+        # outer harnesses) sometimes export empty placeholder values for
+        # well-known names like ANTHROPIC_API_KEY; override=False would
+        # silently keep those empties and force a fallback. We prefer the
+        # values explicitly written into .env.
+        load_dotenv(env_file, override=True)
 
     return AppConfig(
         keywords=_read_yaml("keywords.yaml"),
