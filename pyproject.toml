@@ -29,3 +29,6 @@ include = ["src*"]
 testpaths = ["tests"]
 addopts = "-q"
 pythonpath = ["."]
+markers = [
+    "hermes_live: requires real Hermes CLI installed in WSL2 with xAI OAuth; set HERMES_LIVE_TESTS=1",
+]

@@ -100,6 +100,10 @@ class SearchCitationResult:
     topic: str | None = None
     verification: VerificationTags = field(default_factory=VerificationTags)
     missing_fields: list[str] = field(default_factory=list)
+    # v0.3 additions (Hermes adapter): per-item parse signals and a path to
+    # the (redacted) raw subprocess output that produced this result.
+    parse_warnings: list[str] = field(default_factory=list)
+    raw_response_path: str | None = None
     kind: Literal["search_citation_result"] = "search_citation_result"
 
     def primary_text(self) -> str:

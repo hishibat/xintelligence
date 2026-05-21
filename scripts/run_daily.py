@@ -49,11 +49,23 @@ from scripts.export_results import (  # noqa: E402
 LOG = get_logger()
 
 
-def _make_search_provider(name: str) -> SearchProvider:
+def _make_search_provider(name: str, *, search_fallback: str = "none") -> SearchProvider:
     if name == "mock":
         return MockSearchProvider()
     if name == "hermes":
-        return HermesSearchProvider()
+        # Wire mock as fallback only when explicitly requested.
+        fb = MockSearchProvider() if search_fallback == "mock" else None
+        # raw_response_dir default reads from env, falling back to a sensible local path
+        import os
+        raw_dir_env = os.environ.get("HERMES_RAW_RESPONSE_DIR", "outputs/raw_responses/hermes")
+        timeout_env = int(os.environ.get("HERMES_TIMEOUT_SECONDS", "180"))
+        toolsets_env = os.environ.get("HERMES_TOOLSETS", "x_search")
+        return HermesSearchProvider(
+            toolsets=toolsets_env,
+            timeout_seconds=timeout_env,
+            raw_response_dir=Path(raw_dir_env),
+            fallback=fb,
+        )
     if name == "xai":
         return XAISearchProvider()
     if name == "x_api":
@@ -85,6 +97,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--output-dir", default=None)
     p.add_argument("--dry-run", action="store_true", help="run pipeline but do not write outputs")
     p.add_argument("--no-llm", action="store_true", help="force LLM provider to mock")
+    p.add_argument(
+        "--search-fallback",
+        default="none",
+        choices=["none", "mock"],
+        help=(
+            "What to do when the search provider fails. "
+            "'none' (default) = fail-loud, no fallback (validation mode). "
+            "'mock' = silently degrade to mock search and record it in manifest "
+            "(daily resilience mode)."
+        ),
+    )
     return p.parse_args(argv)
 
 
@@ -100,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
 
     LOG.info("provider=%s llm=%s topic=%s time_range=%s", provider_name, llm_name, args.topic, time_range)
 
-    search = _make_search_provider(provider_name)
+    search = _make_search_provider(provider_name, search_fallback=args.search_fallback)
     llm = _make_llm_provider(llm_name, disabled=args.no_llm)
 
     # --- search -------------------------------------------------------------
@@ -120,14 +143,25 @@ def main(argv: list[str] | None = None) -> int:
 
     raw_items = []
     raw_seen_query_count = 0
+    # Lazy import to avoid hard dep on hermes adapter when running mock provider
+    from src.adapters.search_hermes import HermesError  # noqa: E402
+    search_fallback_used = False
     for topic_id, kw in queries:
         try:
             result = search.search(kw, topic=topic_id, time_range=time_range)
         except NotImplementedError as e:
             LOG.error("provider raised NotImplementedError: %s", e)
             return 3
+        except HermesError as e:
+            # Only reachable when fallback=None (--search-fallback none).
+            LOG.error("search provider failed (fail-loud mode): %s", e)
+            warn(f"Hermes failed (fail-loud): {e}")
+            return 4
         raw_items.extend(result.items)
         raw_seen_query_count += 1
+        # Track fallback usage exposed by HermesSearchProvider
+        if getattr(search, "fallback_used", False):
+            search_fallback_used = True
 
     if not raw_items and provider_name == "mock":
         # Mock returns the whole fixture filtered by topic; with multiple queries
@@ -206,6 +240,8 @@ def main(argv: list[str] | None = None) -> int:
     fallback_used: list[str] = []
     if getattr(llm, "fallback_used", False):
         fallback_used.append(f"llm:{llm_name}->mock")
+    if search_fallback_used:
+        fallback_used.append(f"search:{provider_name}->mock")
 
     warnings_buf = drain_warnings()
     manifest = build_manifest(

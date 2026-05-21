@@ -89,33 +89,69 @@ pytest -q
 python scripts\run_daily.py --provider mock
 ```
 
-### Pattern B: Hermes integration（WSL2 推奨）
+### Pattern B: Hermes integration（WSL2 必須）
 
-Hermes Agent はもともと Linux/macOS を主ターゲットにしている。Windows ユーザは WSL2 上で Hermes を動かし、Windows 側 workspace と path 共有する。
+Hermes Agent を WSL2 Ubuntu で動かし、Python 側から `wsl bash -lc "hermes -z ..."` で呼ぶ構成。Step 0 probe (2026-05-21) で確定した手順。
 
-```bash
-# WSL2 (Ubuntu) 上で
-sudo apt update && sudo apt install -y python3.11 python3.11-venv
-git clone https://github.com/NousResearch/hermes  # 実 URL は公式リリース参照
-cd hermes && ./install.sh
-hermes auth login  # X Premium+ / SuperGrok の OAuth フロー
-hermes tools enable x_search
-hermes tools status
+#### 1) WSL2 で Hermes をインストール
 
-# Windows 側 workspace は /mnt/c/Users/.../workspace で見える
-cd /mnt/c/Users/Hideyuki\ Shibata/workspace/company/Content_Production/x-intelligence
-X_SEARCH_PROVIDER=hermes HERMES_ENABLED=true python scripts/run_daily.py --provider hermes
+```powershell
+# Windows PowerShell から
+wsl bash -c "curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash"
+wsl bash -lc "hermes doctor"   # ✓ が並ぶ
 ```
 
-Hermes 接続検証チェックリスト:
+#### 2) xAI OAuth ログイン（ブラウザ認証）
 
-- [ ] `hermes auth status` で OK
-- [ ] `hermes tools status` で `x_search` が enabled
-- [ ] xAI OAuth token が有効（Premium+ または SuperGrok 契約状態）
-- [ ] `XAI_API_KEY` fallback が機能（OAuth 切れ時）
-- [ ] OAuth 優先・API key fallback の順序が `.env` に反映済
+```powershell
+wsl hermes model
+# 対話プロンプトで xAI provider を選択 → ブラウザで X Premium+ / SuperGrok 認証
+```
 
-> Hermes が x_search で返す結果は **Grok によるサーバーサイド検索結果の合成 + citations** が中心。投稿本文や engagement metrics は完全には取れない可能性が高い。本リポジトリは `SearchCitationResult` で表現し、欠損は `missing_fields` に明示する。
+完了確認:
+```powershell
+wsl hermes doctor | findstr "xAI OAuth"
+# 期待出力: ✓ xAI OAuth (logged in)
+```
+
+#### 3) `x_search` ツール有効化（多くの環境ではデフォルト ON）
+
+```powershell
+wsl hermes doctor | findstr "x_search"
+# 期待: ✓ x_search
+# 出ない場合: wsl hermes tools enable x_search
+```
+
+#### 4) 接続診断 (fallback 禁止)
+
+```powershell
+cd "C:\Users\Hideyuki Shibata\workspace\company\Content_Production\x-intelligence"
+python scripts\check_hermes.py
+# 全 6 項目 [OK] で終了コード 0
+```
+
+#### 5) Hermes 経由で run_daily を実行
+
+**初回検証 (fail-loud)**:
+```powershell
+python scripts\run_daily.py --provider hermes --llm-provider claude --search-fallback none
+```
+
+**日次運用 (resilient)**:
+```powershell
+python scripts\run_daily.py --provider hermes --llm-provider claude --search-fallback mock
+```
+
+#### 接続失敗時の挙動
+
+| Hermes 状態 | `--search-fallback none` | `--search-fallback mock` |
+|---|---|---|
+| 成功 | exit 0, `fallback_used=[]` | exit 0, `fallback_used=[]` |
+| 失敗 | **exit ≠ 0、partial write なし** | exit 0, `fallback_used=["search:hermes->mock"]`, warning 記録 |
+
+#### Hermes が返すデータの粒度
+
+Hermes の `x_search` (Grok 4.x 経由) は **検索結果の合成テキスト + Source URLs** を返す。投稿本文 / author / created_at / engagement metrics は取得できないため、本リポジトリは `SearchCitationResult` 型で表現し、`missing_fields` に欠損項目を明示。`scoring.py` は `citation_fallback` 経路で自動対応。
 
 ### Pattern C: Remote / VPS Hermes（将来拡張）
 

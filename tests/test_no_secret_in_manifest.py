@@ -12,6 +12,7 @@ SECRET_TOKENS = (
     "api_key", "api-key", "apikey",
     "secret", "token", "password",
     "anthropic_api_key", "xai_api_key", "hermes_oauth_token",
+    "hermes_oauth", "bearer", "cookie",
 )
 
 

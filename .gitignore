@@ -9,6 +9,9 @@ outputs/excel/
 outputs/content_drafts/
 outputs/video_prompts/
 outputs/review_queue/
+# Hermes CLI 由来の生応答・診断ログ (実 URL・環境情報が含まれる可能性)
+outputs/hermes_probe/
+outputs/raw_responses/
 # ただし outputs/examples/ は公開可能なサンプル用
 !outputs/examples/
 

@@ -1,0 +1,2 @@
+A recent X post describes Claude Code running in full agent mode for autonomous 2026 workflows handling research, coding, testing and deployment loops with full-stack capabilities. It emphasizes tool use, memory management and sub-agents while seeking new project ideas. 
+Sources: https://x.com/i/status/2056482709548249230
