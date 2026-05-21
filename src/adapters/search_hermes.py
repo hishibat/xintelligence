@@ -65,6 +65,32 @@ DEFAULT_CITATION_CONSTRAINT = (
 )
 
 
+# Topic-specific addenda appended AFTER DEFAULT_CITATION_CONSTRAINT.
+# Only listed topics get an override; all others see the default constraint
+# alone. Used to suppress self-referential failure modes where the model
+# would otherwise answer from internal knowledge.
+TOPIC_PROMPT_OVERRIDES: dict[str, str] = {
+    "grok_xai": (
+        "\n\nTOPIC-SPECIFIC OVERRIDE — GROK/XAI TOPIC:\n"
+        "This query is about Grok, xAI, Grok Imagine, Grok models, or xAI APIs. "
+        "The selected model may have internal knowledge about these topics, but "
+        "this task requires evidence from X posts. Do not answer from internal "
+        "knowledge alone.\n\n"
+        "Required behavior:\n"
+        "- Use x_search to find what people are saying on X.\n"
+        "- Prefer sources in this order: @xai official posts, @elonmusk or xAI executives, "
+        "xAI engineers/researchers, credible AI engineers/researchers, and users sharing "
+        "real usage experience.\n"
+        "- Every important claim must be supported by at least one X post URL.\n"
+        "- Focus on what changed, what people are reacting to, and why it matters for AI agents, "
+        "content automation, enterprise AI adoption, or career/tech sales implications.\n"
+        "- Do not provide a generic product explanation from memory.\n"
+        "- If x_search returns no relevant X posts, explicitly write 'Sources: none found' "
+        "and explain that no relevant X posts were found. Do not silently substitute internal knowledge.\n"
+    ),
+}
+
+
 @dataclass
 class HermesCallResult:
     """Raw subprocess result + redacted stdout/stderr + metadata.
@@ -112,7 +138,11 @@ class HermesSearchProvider(SearchProvider):
     # ---- public API ------------------------------------------------------
 
     def search(self, query: str, topic: str, time_range: str) -> SearchResult:
-        full_query = (query.rstrip() + self.citation_constraint).strip()
+        full_query = (
+            query.rstrip()
+            + self.citation_constraint
+            + TOPIC_PROMPT_OVERRIDES.get(topic, "")
+        ).strip()
         try:
             call = self._invoke_hermes(full_query, topic=topic)
         except HermesError as e:
