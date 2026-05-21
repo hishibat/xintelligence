@@ -69,15 +69,30 @@ def main() -> int:
 
     client = anthropic.Anthropic(timeout=DEFAULT_TIMEOUT_SECONDS)
     started = time.monotonic()
+
+    # Newer Claude models (opus 4.x onward) deprecated the ``temperature``
+    # parameter. We try with it first for older models, then retry without
+    # if Anthropic rejects it.
+    def _call(include_temperature: bool):
+        kwargs = {
+            "model": model,
+            "max_tokens": DEFAULT_MAX_TOKENS,
+            "messages": [{"role": "user", "content": PROMPT}],
+        }
+        if include_temperature:
+            kwargs["temperature"] = DEFAULT_TEMPERATURE
+        return client.messages.create(**kwargs)
+
     try:
-        response = client.messages.create(
-            model=model,
-            max_tokens=DEFAULT_MAX_TOKENS,
-            temperature=DEFAULT_TEMPERATURE,
-            messages=[{"role": "user", "content": PROMPT}],
-        )
+        try:
+            response = _call(include_temperature=True)
+        except anthropic.BadRequestError as e:
+            if "temperature" in str(e).lower():
+                print("(note: model rejects `temperature`; retrying without it)")
+                response = _call(include_temperature=False)
+            else:
+                raise
     except Exception as e:  # narrow exceptions intentionally broad here
-        # Print the error TYPE and short message — never the key.
         _eprint(f"[FAIL] Claude API call raised: {type(e).__name__}: {str(e)[:200]}")
         return 4
     elapsed_ms = int((time.monotonic() - started) * 1000)
