@@ -3,59 +3,72 @@
 # =====================================================================
 # 各トピックは「監視対象キーワード群 + 想定論点」を持つ。
 # trend_analyzer がトピック単位で集計・要約する。
+#
+# Topic id は config/keywords.yaml::themes のキーと 1:1 で対応させる。
+# (trend_analyzer が item.topic = theme_id で集計するため)
 # =====================================================================
 
 topics:
-  - id: ai_agent_market
-    label: "AI Agent Market"
+  - id: claude_code
+    label: "Claude Code / Anthropic"
+    keywords: ["Claude Code", "Claude API", "Anthropic", "Skills", "Agent SDK"]
+    angles:
+      - "エージェント運用のベストプラクティス"
+      - "コスト最適化 / context management"
+      - "Skills / MCP / Hooks / Agent SDK"
+
+  - id: ai_agents
+    label: "AI Agents"
     keywords: ["AI agent", "coding agent", "agentic AI"]
     angles:
       - "誰が AI agent の標準を握るか"
       - "エンタープライズ採用の障壁"
       - "コーディング系 vs ビジネス系"
 
-  - id: grok_xai
-    label: "Grok / xAI"
-    keywords: ["Grok", "xAI", "Grok Imagine"]
+  - id: frontier_models
+    label: "Frontier Models"
+    keywords: ["GPT-5", "Gemini", "Claude Opus", "Grok 4", "frontier model"]
     angles:
-      - "X Premium+ との統合"
-      - "Grok 4 の実力評価"
-      - "画像・動画生成の品質"
+      - "性能比較と用途別最適解"
+      - "Tool-use 信頼性 / Long-context"
+      - "Pricing / quota / availability"
 
-  - id: claude_code_coding_agent
-    label: "Claude Code / Coding Agent"
-    keywords: ["Claude Code", "Codex", "Cursor", "Windsurf"]
+  - id: multi_agent_systems
+    label: "Multi-Agent Systems"
+    keywords: ["multi-agent", "agent orchestration", "Hermes", "CrewAI", "LangGraph"]
     angles:
-      - "エージェント運用のベストプラクティス"
-      - "コスト最適化"
-      - "Skills / MCP / Hooks"
+      - "Orchestrator pattern の進化"
+      - "Multi-provider OAuth"
+      - "MCP / 共通 tool registry"
 
-  - id: microsoft_ai
-    label: "Microsoft AI"
-    keywords: ["Microsoft Copilot", "Azure AI", "M365 Copilot"]
-    angles:
-      - "Enterprise 採用率"
-      - "Activation GTM"
-      - "ライセンス・価格戦略"
-
-  - id: nvidia_ai_infra
-    label: "NVIDIA / AI Infrastructure"
-    keywords: ["NVIDIA", "NIM", "Blackwell", "DGX"]
+  - id: ai_infrastructure
+    label: "AI Infrastructure"
+    keywords: ["NVIDIA", "NIM", "Blackwell", "Bedrock", "inference"]
     angles:
       - "Inference コスト"
       - "On-prem vs cloud"
       - "Sovereign AI"
 
-  - id: data_platform
-    label: "Data Platform"
-    keywords: ["Snowflake", "Databricks", "BigQuery", "lakehouse"]
+  - id: data_platforms
+    label: "Data Platforms"
+    keywords: ["Snowflake", "Databricks", "BigQuery", "lakehouse", "Unity Catalog"]
     angles:
       - "AI ネイティブ機能"
       - "ガバナンスと統合"
+      - "Agent から見たデータ層"
 
-  - id: career_job_market
-    label: "Career / Job Market"
-    keywords: ["tech sales hiring", "AI GTM", "hyperscaler hiring"]
+  - id: ai_governance
+    label: "AI Governance"
+    keywords: ["AI governance", "AI Act", "compliance", "responsible AI", "model risk"]
     angles:
-      - "AI 専任ロールの増減"
-      - "外資系日本法人の RTO 傾向"
+      - "AI Act 実務影響"
+      - "Agent identity / authz"
+      - "Policy-as-code"
+
+  - id: enterprise_ai_adoption
+    label: "Enterprise AI Adoption"
+    keywords: ["enterprise AI", "AI ROI", "production AI", "AI transformation", "Copilot adoption"]
+    angles:
+      - "Fortune 500 / 大企業の AI 実運用実態"
+      - "AI ROI / 失敗事例 / Trough of Disillusionment"
+      - "Enterprise deployment patterns と governance"

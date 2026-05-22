@@ -19,9 +19,9 @@ X 上の重要情報を効率的に収集 → 重要度判定 → Markdown / CSV
 
 ```powershell
 # PowerShell から topic 別に並列起動
-foreach ($t in @("ai_agent","claude_code","hermes_openclaw","grok_xai",
-                 "competing_llms","ai_infra_vendors","ai_governance_data",
-                 "career_consulting")) {
+foreach ($t in @("claude_code","ai_agents","frontier_models","multi_agent_systems",
+                 "ai_infrastructure","data_platforms","ai_governance",
+                 "enterprise_ai_adoption")) {
     Start-Process powershell -ArgumentList @(
         "-NoExit", "-Command",
         "cd 'C:\Users\Hideyuki Shibata\workspace\company\Content_Production\x-intelligence'; " +

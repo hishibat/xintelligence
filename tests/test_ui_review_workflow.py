@@ -9,6 +9,10 @@ import pytest
 
 from ui.logic import (
     REASON_TAGS,
+    aggregate_high_ratio_topics,
+    aggregate_reason_tags,
+    aggregate_review_status,
+    aggregate_run_history,
     build_run_command_custom,
     feedback_log_path,
     latest_review_for_draft,
@@ -178,19 +182,19 @@ def test_reason_tags_constant_complete():
 
 def test_suggest_topics_keyword_overlap():
     suggestions = suggest_topics("AI agents for enterprise sales")
-    assert "ai_agent" in suggestions
+    assert "ai_agents" in suggestions
 
 
 def test_suggest_topics_grok_mentions():
     suggestions = suggest_topics("Grok agent automation")
-    assert "grok_xai" in suggestions
-    assert "ai_agent" in suggestions
+    assert "frontier_models" in suggestions
+    assert "ai_agents" in suggestions
 
 
 def test_suggest_topics_databricks_governance():
     suggestions = suggest_topics("Databricks governance and lineage")
     # Should suggest at least one of these two
-    assert any(t in suggestions for t in ("ai_governance_data", "ai_infra_vendors"))
+    assert any(t in suggestions for t in ("ai_governance", "data_platforms"))
 
 
 def test_suggest_topics_empty_input():
@@ -255,3 +259,100 @@ def test_build_run_command_custom_NEVER_contains_posting_flags():
     )
     for f in ("--post", "--publish", "--send", "--tweet", "--share"):
         assert f not in cmd
+
+
+# ---------------------------------------------------------------- analytics aggregations
+
+
+def _make_manifest(tmp_path: Path, date: str, **overrides):
+    daily = tmp_path / "outputs" / "daily_reports" / date
+    daily.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "run_id": f"run_{date}",
+        "provider": "mock",
+        "llm_provider": "mock",
+        "citationless_ratio": 0.0,
+        "citationless_items_count": 0,
+        "fallback_used": [],
+        "warnings": [],
+        "topics_with_high_citationless_ratio": [],
+    }
+    payload.update(overrides)
+    (daily / "run_manifest.json").write_text(
+        json.dumps(payload), encoding="utf-8",
+    )
+    return daily
+
+
+def test_aggregate_review_status_counts_last_per_draft(tmp_path):
+    # 2 drafts: 01 ends approved, 02 ends rejected. Two dates.
+    save_review_action(date_str="2026-05-21", draft_file="01.md",
+                       review_status="feedback_only", outputs_root=tmp_path)
+    save_review_action(date_str="2026-05-21", draft_file="01.md",
+                       review_status="approved", outputs_root=tmp_path)
+    save_review_action(date_str="2026-05-21", draft_file="02.md",
+                       review_status="rejected", outputs_root=tmp_path)
+    save_review_action(date_str="2026-05-22", draft_file="03.md",
+                       review_status="needs_fact_check", outputs_root=tmp_path)
+    _make_manifest(tmp_path, "2026-05-21")
+    _make_manifest(tmp_path, "2026-05-22")
+
+    counts = aggregate_review_status(outputs_root=tmp_path)
+    # 01 contributes 'approved' (last, not feedback_only); 02 'rejected'; 03 'needs_fact_check'
+    assert counts == {"approved": 1, "rejected": 1, "needs_fact_check": 1}
+
+
+def test_aggregate_review_status_empty(tmp_path):
+    assert aggregate_review_status(outputs_root=tmp_path) == {}
+
+
+def test_aggregate_reason_tags_counts_all(tmp_path):
+    save_review_action(date_str="2026-05-22", draft_file="01.md",
+                       review_status="rejected",
+                       reason_tags=["hook_weak", "source_weak"],
+                       outputs_root=tmp_path)
+    save_review_action(date_str="2026-05-22", draft_file="02.md",
+                       review_status="approved",
+                       reason_tags=["angle_good"],
+                       outputs_root=tmp_path)
+    save_review_action(date_str="2026-05-22", draft_file="03.md",
+                       review_status="rejected",
+                       reason_tags=["hook_weak"],
+                       outputs_root=tmp_path)
+    _make_manifest(tmp_path, "2026-05-22")
+
+    counts = aggregate_reason_tags(outputs_root=tmp_path)
+    assert counts["hook_weak"] == 2
+    assert counts["source_weak"] == 1
+    assert counts["angle_good"] == 1
+
+
+def test_aggregate_run_history_sorted_oldest_first(tmp_path):
+    _make_manifest(tmp_path, "2026-05-20", citationless_ratio=0.10)
+    _make_manifest(tmp_path, "2026-05-22", citationless_ratio=0.30,
+                   topics_with_high_citationless_ratio=["frontier_models"])
+    _make_manifest(tmp_path, "2026-05-21", citationless_ratio=0.55,
+                   fallback_used=["search:hermes->mock"],
+                   warnings=["something happened"])
+
+    rows = aggregate_run_history(outputs_root=tmp_path)
+    assert [r["date"] for r in rows] == ["2026-05-20", "2026-05-21", "2026-05-22"]
+    assert rows[1]["fallback_count"] == 1
+    assert rows[1]["warning_count"] == 1
+    assert rows[2]["high_ratio_topics"] == ["frontier_models"]
+
+
+def test_aggregate_high_ratio_topics_counts_appearances(tmp_path):
+    _make_manifest(tmp_path, "2026-05-20",
+                   topics_with_high_citationless_ratio=["frontier_models", "ai_governance"])
+    _make_manifest(tmp_path, "2026-05-21",
+                   topics_with_high_citationless_ratio=["frontier_models"])
+    _make_manifest(tmp_path, "2026-05-22",
+                   topics_with_high_citationless_ratio=[])
+
+    counts = aggregate_high_ratio_topics(outputs_root=tmp_path)
+    assert counts == {"frontier_models": 2, "ai_governance": 1}
+
+
+def test_aggregate_high_ratio_topics_empty_when_no_runs(tmp_path):
+    assert aggregate_high_ratio_topics(outputs_root=tmp_path) == {}

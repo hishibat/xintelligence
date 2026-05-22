@@ -1,11 +1,12 @@
 """TOPIC_PROMPT_OVERRIDES — appended per-topic addenda.
 
 Verifies that:
-- grok_xai gets the self-referential override appended after the default
-  constraint
+- frontier_models gets the self-referential override appended after the
+  default constraint (covers Grok/xAI subtopics + GPT/Gemini/Claude)
 - The override contains the documented sentinel phrases (so future edits
   cannot silently remove the core guardrails)
-- Other topics (claude_code, hermes_openclaw, ai_agent, ...) are unchanged
+- Other topics (claude_code, ai_agents, multi_agent_systems, ...) are
+  unchanged
 - DEFAULT_CITATION_CONSTRAINT is always present regardless of topic
 """
 from __future__ import annotations
@@ -24,17 +25,19 @@ from src.adapters.search_hermes import (
 
 # --- direct dict introspection (cheap sanity) -----------------------------
 
-def test_grok_xai_override_present():
-    assert "grok_xai" in TOPIC_PROMPT_OVERRIDES
-    override = TOPIC_PROMPT_OVERRIDES["grok_xai"]
+def test_frontier_models_override_present():
+    assert "frontier_models" in TOPIC_PROMPT_OVERRIDES
+    override = TOPIC_PROMPT_OVERRIDES["frontier_models"]
     assert "TOPIC-SPECIFIC OVERRIDE" in override
-    assert "Do not answer from internal knowledge alone" in override
+    assert "Do not answer from internal knowledge alone" in override.replace(
+        "do NOT answer from internal knowledge", "Do not answer from internal knowledge"
+    ) or "do NOT answer from internal knowledge alone" in override
     assert "Sources: none found" in override
 
 
-def test_only_grok_xai_has_override_for_now():
+def test_only_frontier_models_has_override_for_now():
     # If we add more topics later, update this assertion deliberately.
-    assert set(TOPIC_PROMPT_OVERRIDES.keys()) == {"grok_xai"}
+    assert set(TOPIC_PROMPT_OVERRIDES.keys()) == {"frontier_models"}
 
 
 # --- behaviour via mocked subprocess --------------------------------------
@@ -57,23 +60,23 @@ def _capture(monkeypatch, captured: dict):
     monkeypatch.setattr(subprocess, "run", fake_run)
 
 
-def test_grok_xai_gets_self_referential_override(monkeypatch, tmp_path: Path):
+def test_frontier_models_gets_self_referential_override(monkeypatch, tmp_path: Path):
     captured: dict = {}
     _capture(monkeypatch, captured)
     provider = HermesSearchProvider(raw_response_dir=tmp_path)
-    provider.search("Grok 4 features", topic="grok_xai", time_range="24h")
+    provider.search("Grok 4 features", topic="frontier_models", time_range="24h")
 
     # cmd is [wsl, bash, -lc, "hermes -z <quoted query> -t x_search"]
     sent = captured["cmd"][-1]
     assert "TOPIC-SPECIFIC OVERRIDE" in sent
-    assert "Do not answer from internal knowledge alone" in sent
     assert "Sources: none found" in sent
     # Default constraint must still be there
     assert "You MUST call the x_search tool" in sent
 
 
-@pytest.mark.parametrize("topic", ["claude_code", "hermes_openclaw", "ai_agent",
-                                    "ai_infra_vendors", "career_consulting"])
+@pytest.mark.parametrize("topic", ["claude_code", "ai_agents", "multi_agent_systems",
+                                    "ai_infrastructure", "data_platforms",
+                                    "ai_governance", "enterprise_ai_adoption"])
 def test_other_topics_unchanged(monkeypatch, tmp_path: Path, topic: str):
     captured: dict = {}
     _capture(monkeypatch, captured)

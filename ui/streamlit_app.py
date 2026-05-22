@@ -33,7 +33,12 @@ from ui.logic import (  # noqa: E402
     REASON_TAGS,
     REVIEW_BUCKETS,
     SEARCH_FALLBACKS,
+    TIME_RANGES,
     TOPICS,
+    aggregate_high_ratio_topics,
+    aggregate_reason_tags,
+    aggregate_review_status,
+    aggregate_run_history,
     build_run_command,
     build_run_command_custom,
     classify_citationless_ratio,
@@ -108,7 +113,24 @@ with st.sidebar:
     search_fallback = st.selectbox(
         "Search fallback", SEARCH_FALLBACKS, index=SEARCH_FALLBACKS.index("none")
     )
-    run_date_input = st.date_input("Date", value=datetime.now(timezone.utc).date())
+    time_range = st.selectbox(
+        "Time range",
+        TIME_RANGES,
+        index=TIME_RANGES.index("24h"),
+        help=(
+            "How far back to search. 24h = daily run (default). "
+            "3d / 7d = weekly catch-up or topic deep dive. "
+            "Passed to the provider via --time-range."
+        ),
+    )
+    run_date_input = st.date_input(
+        "Output date label",
+        value=datetime.now(timezone.utc).date(),
+        help=(
+            "The date used to organise outputs under outputs/.../<date>/. "
+            "Does NOT affect search recency — that is controlled by Time range above."
+        ),
+    )
     run_btn = st.button("▶ Run pipeline", type="primary", use_container_width=True)
 
     st.divider()
@@ -147,6 +169,7 @@ if run_btn:
                 custom_query=custom_query,
                 custom_topic_id="custom",
                 date_str=str(run_date_input),
+                time_range=time_range,
             )
         else:
             cmd = build_run_command(
@@ -155,6 +178,7 @@ if run_btn:
                 search_fallback=search_fallback,
                 topic=topic,
                 date_str=str(run_date_input),
+                time_range=time_range,
             )
     except ValueError as e:
         st.error(f"Invalid input: {e}")
@@ -162,7 +186,7 @@ if run_btn:
 
     st.info(
         f"Running: mode={topic_mode}, provider={provider}, llm={llm_provider}, "
-        f"fallback={search_fallback}, "
+        f"fallback={search_fallback}, time_range={time_range}, "
         f"{'topic=' + topic if topic_mode == 'Preset' else 'custom_query=' + (custom_query or '')[:80]}, "
         f"date={run_date_input}"
     )
@@ -186,8 +210,9 @@ if run_btn:
 
 # ---------------------------------------------------------------- tabs (always visible)
 
-tab_report, tab_drafts, tab_video, tab_review, tab_files = st.tabs(
-    ["📊 Daily Report", "✍️ Drafts", "🎬 Video Prompts", "🗂️ Review Queue", "📁 Files"]
+tab_report, tab_drafts, tab_video, tab_review, tab_analytics, tab_files = st.tabs(
+    ["📊 Daily Report", "✍️ Drafts", "🎬 Video Prompts", "🗂️ Review Queue",
+     "📈 Analytics", "📁 Files"]
 )
 
 selected_date = st.session_state.selected_view_date
@@ -506,6 +531,111 @@ with tab_review:
                         )
                         if e.get("feedback_text"):
                             st.caption(f"  💬 {e['feedback_text']}")
+
+
+# ---------------------------------------------------------------- Analytics
+
+with tab_analytics:
+    st.caption(
+        "📊 **Mockup** — local aggregates across all run dates. Reads only "
+        "`outputs/.../run_manifest.json` and `outputs/review_queue/<date>/"
+        "feedback_log.jsonl`. No external calls."
+    )
+
+    all_dates = list_run_dates()
+    if not all_dates:
+        _empty_state("Analytics")
+    else:
+        st.write(f"**Aggregated over {len(all_dates)} run date(s).**")
+
+        # --- Row 1: review-status & reason-tag distributions ----------
+        col_status, col_tags = st.columns(2)
+
+        with col_status:
+            st.subheader("Review status distribution")
+            status_counts = aggregate_review_status()
+            if not status_counts:
+                st.caption("(no feedback logged yet)")
+            else:
+                st.bar_chart(status_counts)
+                st.caption(
+                    "Counts the LAST status per draft per date. "
+                    "Approval rate = approved / (approved + rejected + needs_fact_check)."
+                )
+                total_decisive = sum(
+                    status_counts.get(s, 0)
+                    for s in ("approved", "rejected", "needs_fact_check")
+                )
+                if total_decisive > 0:
+                    rate = status_counts.get("approved", 0) / total_decisive
+                    st.metric("Approval rate", f"{rate*100:.1f}%")
+
+        with col_tags:
+            st.subheader("Reason tag frequency")
+            tag_counts = aggregate_reason_tags()
+            if not tag_counts:
+                st.caption("(no reason tags applied yet)")
+            else:
+                sorted_tags = dict(
+                    sorted(tag_counts.items(), key=lambda x: -x[1])
+                )
+                st.bar_chart(sorted_tags)
+                st.caption(
+                    "All tag attachments (not deduped per draft). "
+                    "Top tags suggest where prompt / pipeline tuning could pay off."
+                )
+
+        st.divider()
+
+        # --- Row 2: run history (citationless ratio over time) --------
+        st.subheader("Citationless ratio over time")
+        history = aggregate_run_history()
+        if not history:
+            st.caption("(no run manifests found)")
+        else:
+            ratio_series = {row["date"]: row["citationless_ratio"] for row in history}
+            st.line_chart(ratio_series)
+            st.caption(
+                "🟢 < 20%  /  🟡 20–50%  /  🔴 ≥ 50% — see `docs/operations.md` "
+                "for the per-band response."
+            )
+
+            with st.expander("Full run history table"):
+                st.dataframe(
+                    history,
+                    column_config={
+                        "date": "Date",
+                        "citationless_ratio": st.column_config.NumberColumn(
+                            "Citationless", format="%.2f",
+                        ),
+                        "citationless_items_count": "Citationless #",
+                        "provider": "Provider",
+                        "llm_provider": "LLM",
+                        "fallback_count": "Fallbacks",
+                        "warning_count": "Warnings",
+                        "high_ratio_topics": "High-ratio topics",
+                    },
+                    hide_index=True,
+                )
+
+        st.divider()
+
+        # --- Row 3: topic-level signals -------------------------------
+        st.subheader("Topics flagged as high-citationless")
+        topic_flags = aggregate_high_ratio_topics()
+        if not topic_flags:
+            st.caption("No topic has crossed the high-citationless threshold yet.")
+        else:
+            sorted_topics = dict(
+                sorted(topic_flags.items(), key=lambda x: -x[1])
+            )
+            st.bar_chart(sorted_topics)
+            st.caption(
+                "How often each topic appeared in "
+                "`topics_with_high_citationless_ratio` across runs. "
+                "Consistent offenders → adjust per-topic prompt overrides "
+                "in `src/adapters/search_hermes.py::TOPIC_PROMPT_OVERRIDES`."
+            )
 
 
 # ---------------------------------------------------------------- Files

@@ -25,12 +25,12 @@ def test_official_source_boosts():
     assert with_off.estimated_impact_score > base.estimated_impact_score
 
 
-def test_grok_xai_no_source_penalty():
+def test_frontier_models_no_source_penalty():
     base = estimate_impact(channel="x_post", draft_text="x" * 120,
-                           source_url_count=0, topic="ai_agent")
-    grok = estimate_impact(channel="x_post", draft_text="x" * 120,
-                           source_url_count=0, topic="grok_xai")
-    assert grok.estimated_impact_score < base.estimated_impact_score
+                           source_url_count=0, topic="ai_agents")
+    frontier = estimate_impact(channel="x_post", draft_text="x" * 120,
+                               source_url_count=0, topic="frontier_models")
+    assert frontier.estimated_impact_score < base.estimated_impact_score
 
 
 def test_hook_pattern_japanese():
@@ -82,7 +82,7 @@ def test_confidence_is_low_for_rule_based():
 def test_band_thresholds():
     # very low (no sources, generic text)
     low = estimate_impact(channel="x_post", draft_text="generic", source_url_count=0,
-                          citationless_ratio=0.8, topic="grok_xai")
+                          citationless_ratio=0.8, topic="frontier_models")
     assert low.virality_potential == "low"
 
     # high (great hook + sources + official)

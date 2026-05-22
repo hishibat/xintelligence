@@ -32,7 +32,7 @@ def test_fallback_none_fails_loudly(monkeypatch, tmp_path: Path):
         "--search-fallback", "none",
         "--output-dir", str(tmp_path / "outputs"),
         "--date", "2026-05-20",
-        "--topic", "ai_agent",
+        "--topic", "ai_agents",
     ])
     assert rc != 0, "expected non-zero exit when Hermes fails with --search-fallback none"
 
@@ -48,7 +48,7 @@ def test_fallback_mock_recovers_and_records(monkeypatch, tmp_path: Path):
         "--search-fallback", "mock",
         "--output-dir", str(out),
         "--date", "2026-05-20",
-        "--topic", "ai_agent",
+        "--topic", "ai_agents",
     ])
     assert rc == 0
 

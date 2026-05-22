@@ -11,8 +11,10 @@ from ui.logic import (
     PROVIDERS,
     REVIEW_BUCKETS,
     SEARCH_FALLBACKS,
+    TIME_RANGES,
     TOPICS,
     build_run_command,
+    build_run_command_custom,
     classify_citationless_ratio,
     latest_run_date,
     list_bucket,
@@ -200,7 +202,7 @@ def test_build_run_command_includes_all_flags():
 def test_build_run_command_optional_date():
     cmd = build_run_command(
         provider="mock", llm_provider="mock",
-        search_fallback="none", topic="ai_agent",
+        search_fallback="none", topic="ai_agents",
     )
     assert "--date" not in cmd
 
@@ -225,6 +227,54 @@ def test_build_run_command_does_NOT_include_posting_flags():
     forbidden = ["--post", "--publish", "--send", "--tweet", "--share"]
     for f in forbidden:
         assert f not in cmd
+
+
+# ---------------------------------------------------------------- time_range
+
+
+@pytest.mark.parametrize("tr", TIME_RANGES)
+def test_build_run_command_accepts_each_time_range(tr):
+    cmd = build_run_command(
+        provider="mock", llm_provider="mock",
+        search_fallback="none", topic="claude_code",
+        time_range=tr,
+    )
+    assert "--time-range" in cmd
+    assert tr in cmd
+
+
+def test_build_run_command_omits_time_range_when_none():
+    cmd = build_run_command(
+        provider="mock", llm_provider="mock",
+        search_fallback="none", topic="claude_code",
+        time_range=None,
+    )
+    assert "--time-range" not in cmd
+
+
+def test_build_run_command_rejects_invalid_time_range():
+    with pytest.raises(ValueError, match="time_range"):
+        build_run_command(
+            provider="mock", llm_provider="mock",
+            search_fallback="none", topic="claude_code",
+            time_range="14d",
+        )
+
+
+@pytest.mark.parametrize("tr", TIME_RANGES)
+def test_build_run_command_custom_accepts_each_time_range(tr):
+    cmd = build_run_command_custom(
+        provider="mock", llm_provider="mock",
+        search_fallback="none",
+        custom_query="enterprise AI rollout patterns",
+        time_range=tr,
+    )
+    assert "--time-range" in cmd
+    assert tr in cmd
+
+
+def test_time_ranges_constant():
+    assert TIME_RANGES == ["24h", "3d", "7d"]
 
 
 # ---------------------------------------------------------------- display
@@ -263,7 +313,7 @@ def test_manifest_summary_dirty_on_any_issue():
     for dirty in [
         {**base, "fallback_used": ["search:hermes->mock"]},
         {**base, "warnings": ["something"]},
-        {**base, "topics_with_high_citationless_ratio": ["grok_xai"]},
+        {**base, "topics_with_high_citationless_ratio": ["frontier_models"]},
     ]:
         assert manifest_summary(dirty)["is_clean"] is False
 
@@ -279,6 +329,11 @@ def test_constants_match_runtime_choices():
     assert SEARCH_FALLBACKS == ["none", "mock"]
     assert REVIEW_BUCKETS == ["approved", "rejected", "needs_fact_check"]
     assert "claude_code" in TOPICS
-    assert "hermes_openclaw" in TOPICS
-    assert "grok_xai" in TOPICS
-    assert "ai_agent" in TOPICS
+    assert "multi_agent_systems" in TOPICS
+    assert "frontier_models" in TOPICS
+    assert "ai_agents" in TOPICS
+    assert "ai_infrastructure" in TOPICS
+    assert "data_platforms" in TOPICS
+    assert "ai_governance" in TOPICS
+    assert "enterprise_ai_adoption" in TOPICS
+    assert len(TOPICS) == 8

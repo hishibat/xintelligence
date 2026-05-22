@@ -7,7 +7,7 @@
   "items": [
     {
       "kind": "structured_post",
-      "topic": "ai_agent_market",
+      "topic": "ai_agents",
       "post_id": "mock_001",
       "author": "Andrej Karpathy",
       "author_handle": "@karpathy",
@@ -31,7 +31,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "grok_xai",
+      "topic": "frontier_models",
       "post_id": "mock_003",
       "author": "Elon Musk",
       "author_handle": "@elonmusk",
@@ -43,7 +43,7 @@
     },
     {
       "kind": "search_citation_result",
-      "topic": "hermes_openclaw",
+      "topic": "multi_agent_systems",
       "summary": "Nous Research の Hermes Agent v2.1 が公開された。40+ プロバイダ統一 CLI に加え、Grok / Claude / GPT-5 を OAuth で同一セッション内に共存させる multi-provider mode が新規追加。x_search ツールは Grok 4 経由で動作。",
       "cited_urls": [
         "https://x.com/NousResearch/status/mock_004a",
@@ -60,7 +60,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "competing_llms",
+      "topic": "frontier_models",
       "post_id": "mock_005",
       "author": "Sam Altman",
       "author_handle": "@sama",
@@ -72,7 +72,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_infra_vendors",
+      "topic": "ai_infrastructure",
       "post_id": "mock_006",
       "author": "Jensen Huang",
       "author_handle": "@nvidia",
@@ -84,7 +84,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "competing_llms",
+      "topic": "frontier_models",
       "post_id": "mock_007",
       "author": "Google DeepMind",
       "author_handle": "@GoogleDeepMind",
@@ -96,7 +96,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_infra_vendors",
+      "topic": "data_platforms",
       "post_id": "mock_008",
       "author": "Databricks",
       "author_handle": "@databricks",
@@ -108,7 +108,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_infra_vendors",
+      "topic": "data_platforms",
       "post_id": "mock_009",
       "author": "Snowflake",
       "author_handle": "@SnowflakeDB",
@@ -120,7 +120,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_governance_data",
+      "topic": "ai_governance",
       "post_id": "mock_010",
       "author": "Stanford HAI",
       "author_handle": "@StanfordHAI",
@@ -132,7 +132,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "career_consulting",
+      "topic": "enterprise_ai_adoption",
       "post_id": "mock_011",
       "author": "Hiring Manager AWS Japan",
       "author_handle": "@aws_japan_hire",
@@ -144,7 +144,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "career_consulting",
+      "topic": "enterprise_ai_adoption",
       "post_id": "mock_012",
       "author": "Tech Sales Insider",
       "author_handle": "@techsalesjp",
@@ -168,7 +168,7 @@
     },
     {
       "kind": "search_citation_result",
-      "topic": "grok_xai",
+      "topic": "frontier_models",
       "summary": "xAI が Responses API + x_search tool の組み合わせで企業向け検索エージェント機能を強化。価格は $0.30 per 1K tool calls とアナウンスされている。",
       "cited_urls": [
         "https://x.com/xai/status/mock_014a",
@@ -183,7 +183,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "competing_llms",
+      "topic": "enterprise_ai_adoption",
       "post_id": "mock_015",
       "author": "Satya Nadella",
       "author_handle": "@satyanadella",
@@ -195,7 +195,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_governance_data",
+      "topic": "ai_governance",
       "post_id": "mock_016",
       "author": "EU AI Office",
       "author_handle": "@EUAIOffice",
@@ -207,7 +207,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_agent_market",
+      "topic": "ai_agents",
       "post_id": "mock_017",
       "author": "Simon Willison",
       "author_handle": "@simonw",
@@ -219,7 +219,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "hermes_openclaw",
+      "topic": "multi_agent_systems",
       "post_id": "mock_018",
       "author": "Nous Research",
       "author_handle": "@NousResearch",
@@ -231,7 +231,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_infra_vendors",
+      "topic": "ai_infrastructure",
       "post_id": "mock_019",
       "author": "AWS",
       "author_handle": "@awscloud",
@@ -243,7 +243,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "grok_xai",
+      "topic": "frontier_models",
       "post_id": "mock_020",
       "author": "xAI",
       "author_handle": "@xai",
@@ -267,7 +267,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "career_consulting",
+      "topic": "enterprise_ai_adoption",
       "post_id": "mock_022",
       "author": "Microsoft Japan Careers",
       "author_handle": "@msjapan_jobs",
@@ -279,7 +279,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_governance_data",
+      "topic": "ai_governance",
       "post_id": "mock_023",
       "author": "Jay Alammar",
       "author_handle": "@jayalammar",
@@ -291,7 +291,7 @@
     },
     {
       "kind": "search_citation_result",
-      "topic": "ai_agent_market",
+      "topic": "ai_agents",
       "summary": "ガートナーの 2026 Hype Cycle で AI Agent が Peak of Inflated Expectations から Trough of Disillusionment に移行。具体的 ROI が見えるユースケースは10-15%に留まる。",
       "cited_urls": [
         "https://x.com/Gartner_inc/status/mock_024a",
@@ -306,7 +306,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "competing_llms",
+      "topic": "frontier_models",
       "post_id": "mock_025",
       "author": "Demis Hassabis",
       "author_handle": "@demishassabis",
@@ -318,7 +318,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_infra_vendors",
+      "topic": "ai_infrastructure",
       "post_id": "mock_026",
       "author": "Lambda Labs",
       "author_handle": "@LambdaAPI",
@@ -330,7 +330,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_agent_market",
+      "topic": "ai_agents",
       "post_id": "mock_027",
       "author": "Anonymous Investor",
       "author_handle": "@vcrumormill",
@@ -342,7 +342,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "grok_xai",
+      "topic": "frontier_models",
       "post_id": "mock_028",
       "author": "Linus Ekenstam",
       "author_handle": "@LinusEkenstam",
@@ -354,7 +354,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "career_consulting",
+      "topic": "enterprise_ai_adoption",
       "post_id": "mock_029",
       "author": "BCG GAMMA",
       "author_handle": "@BCG_GAMMA",
@@ -366,7 +366,7 @@
     },
     {
       "kind": "structured_post",
-      "topic": "ai_governance_data",
+      "topic": "ai_governance",
       "post_id": "mock_030",
       "author": "Bruce Schneier",
       "author_handle": "@schneierblog",

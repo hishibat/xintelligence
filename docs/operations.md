@@ -106,9 +106,9 @@ cd "C:\Users\Hideyuki Shibata\workspace\company\Content_Production\x-intelligenc
 $today = Get-Date -Format "yyyy-MM-dd"
 
 # topic を 8 つ並列起動 (各 2-5 分、wall clock 5-10 分で完了見込み)
-foreach ($t in @("ai_agent", "claude_code", "hermes_openclaw", "grok_xai",
-                 "competing_llms", "ai_infra_vendors", "ai_governance_data",
-                 "career_consulting")) {
+foreach ($t in @("claude_code", "ai_agents", "frontier_models", "multi_agent_systems",
+                 "ai_infrastructure", "data_platforms", "ai_governance",
+                 "enterprise_ai_adoption")) {
     Start-Process powershell -ArgumentList @(
         "-NoExit", "-Command",
         "cd 'C:\Users\Hideyuki Shibata\workspace\company\Content_Production\x-intelligence'; " +
@@ -135,30 +135,30 @@ python scripts\run_daily.py --provider hermes --llm-provider claude `
 ```
 - 本書作成時点での citation 品質: 安定して 🟢 (citationless 0%)
 
-### hermes_openclaw (3 queries, ~2-3 分)
+### multi_agent_systems (6 queries, ~3-4 分)
 
 ```powershell
 python scripts\run_daily.py --provider hermes --llm-provider claude `
-    --search-fallback none --topic hermes_openclaw --date 2026-05-21
+    --search-fallback none --topic multi_agent_systems --date 2026-05-21
 ```
-- 3-run 平均で citationless 0% (commit `52a5986` 後の 3 連続 run で実証)
+- 旧 `hermes_openclaw` の後継。Hermes / CrewAI / LangGraph / multi-provider を包含。citation 品質は旧 hermes_openclaw 同等 (0-10%) を想定（要再計測）
 
-### ai_agent (5 queries, ~3-5 分)
+### ai_agents (5 queries, ~3-5 分)
 
 ```powershell
 python scripts\run_daily.py --provider hermes --llm-provider claude `
-    --search-fallback none --topic ai_agent --date 2026-05-21
+    --search-fallback none --topic ai_agents --date 2026-05-21
 ```
 - 安定して 🟡 (citationless ~20%、Grok が広い query で稀に x_search 呼ばないケースあり)
 
-### grok_xai (5 queries, ~3-5 分)
+### frontier_models (6 queries, ~3-5 分)
 
 ```powershell
 python scripts\run_daily.py --provider hermes --llm-provider claude `
-    --search-fallback none --topic grok_xai --date 2026-05-21
+    --search-fallback none --topic frontier_models --date 2026-05-21
 ```
-- TOPIC_PROMPT_OVERRIDES 適用後 (commit `c302060`)、3-run 平均で 🟡 (citationless 35%)
-- 改善前 (旧 prompt): 80%、Prompt v1: 60% → TOPIC_OVERRIDES で 35% に到達
+- 旧 `grok_xai` + `competing_llms` を統合。Grok 自己言及対策の TOPIC_PROMPT_OVERRIDES は `frontier_models` key に rebrand 済
+- 旧 grok_xai 単独計測 (commit `c302060`) では 3-run 平均 35%。frontier_models 統合後は GPT/Gemini/Claude 由来の query が混ざるため再計測必要
 
 ## 4. 出力確認手順
 

@@ -2,7 +2,7 @@
 
 Usage:
     python scripts/run_daily.py --provider mock
-    python scripts/run_daily.py --provider mock --llm-provider claude --topic ai_agent_market
+    python scripts/run_daily.py --provider mock --llm-provider claude --topic ai_agents
     python scripts/run_daily.py --provider mock --no-llm --dry-run
 """
 from __future__ import annotations

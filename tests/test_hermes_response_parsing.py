@@ -63,7 +63,7 @@ def test_parse_warnings_when_no_urls():
     result = provider._to_citation_result(
         stdout="Some answer body with no x.com links at all.\nSources: (none)",
         stderr="",
-        topic="ai_agent_market",
+        topic="ai_agents",
         raw_path=None,
         extra_warnings=[],
     )

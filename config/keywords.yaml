@@ -3,10 +3,22 @@
 # =====================================================================
 # 各テーマごとにキーワードをグルーピング。CLI の --topic で個別実行可能、
 # --topic all で全部走査。
+#
+# Topic 命名規約: 製品名固有を避け、概念ベースで陳腐化耐性を持たせる。
+#   (例: grok_xai → frontier_models, hermes_openclaw → multi_agent_systems)
 # =====================================================================
 
 themes:
-  ai_agent:
+  claude_code:
+    description: "Claude Code / Claude API / Skills / Agent SDK"
+    keywords:
+      - "Claude Code"
+      - "Claude API"
+      - "Anthropic"
+      - "Claude Skills"
+      - "Claude Agent SDK"
+
+  ai_agents:
     description: "AI Agent ・ Coding Agent 全般"
     keywords:
       - "AI agent"
@@ -15,63 +27,61 @@ themes:
       - "agentic AI"
       - "agent framework"
 
-  claude_code:
-    description: "Claude Code / Anthropic 関連"
+  frontier_models:
+    description: "Frontier LLM (Claude / GPT / Gemini / Grok) — 性能・リリース・比較"
     keywords:
-      - "Claude Code"
-      - "Claude API"
-      - "Anthropic"
-      - "claude-code"
-      - "claude opus"
-
-  hermes_openclaw:
-    description: "Hermes Agent / OpenClaw"
-    keywords:
-      - "Hermes Agent"
-      - "Nous Research Hermes"
-      - "OpenClaw"
-
-  grok_xai:
-    description: "Grok / xAI / Grok Imagine"
-    keywords:
-      - "Grok"
-      - "xAI"
-      - "Grok Imagine"
-      - "Grok 4"
-      - "Grok-2-image"
-
-  competing_llms:
-    description: "ChatGPT / Gemini / Copilot"
-    keywords:
-      - "ChatGPT"
       - "GPT-5"
-      - "Gemini"
-      - "Microsoft Copilot"
-      - "OpenAI"
+      - "Gemini 2.5"
+      - "Claude Opus"
+      - "Grok 4"
+      - "frontier model"
+      - "SOTA LLM"
 
-  ai_infra_vendors:
-    description: "NVIDIA / AWS / Databricks / Snowflake"
+  multi_agent_systems:
+    description: "Multi-Agent / Agent Orchestration (Hermes / CrewAI / LangGraph 等)"
+    keywords:
+      - "multi-agent"
+      - "agent orchestration"
+      - "Hermes Agent"
+      - "CrewAI"
+      - "LangGraph"
+      - "multi-provider agent"
+
+  ai_infrastructure:
+    description: "GPU / Inference / NVIDIA / AWS Bedrock / Azure AI Foundry"
     keywords:
       - "NVIDIA NIM"
-      - "NVIDIA AI"
+      - "Blackwell"
       - "AWS Bedrock"
-      - "Databricks"
-      - "Snowflake Cortex"
+      - "Azure AI Foundry"
+      - "inference cost"
+      - "GPU cloud"
 
-  ai_governance_data:
-    description: "AI governance / Data management"
+  data_platforms:
+    description: "Lakehouse / Snowflake / Databricks / BigQuery — AI ネイティブ機能"
+    keywords:
+      - "Snowflake Cortex"
+      - "Databricks"
+      - "Unity Catalog"
+      - "BigQuery AI"
+      - "lakehouse AI"
+
+  ai_governance:
+    description: "AI governance / AI Act / model risk / responsible AI"
     keywords:
       - "AI governance"
-      - "data governance"
-      - "data management"
+      - "AI Act"
       - "AI compliance"
       - "model risk"
+      - "responsible AI"
 
-  career_consulting:
-    description: "Consulting / Career transition / Tech sales / Enterprise IT"
+  enterprise_ai_adoption:
+    description: "Enterprise AI Adoption — 大企業の AI 実運用・ROI・失敗事例・transformation"
     keywords:
-      - "tech sales"
-      - "GTM AI"
-      - "enterprise IT AI"
-      - "consulting AI"
-      - "career transition AI"
+      - "enterprise AI adoption"
+      - "AI ROI"
+      - "production AI"
+      - "AI transformation"
+      - "enterprise deployment"
+      - "AI implementation failure"
+      - "business AI adoption"

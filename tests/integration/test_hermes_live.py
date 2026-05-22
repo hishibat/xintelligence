@@ -32,7 +32,7 @@ def test_hermes_live_x_search_smoke(tmp_path):
     )
     result = provider.search(
         "Find one recent X post about AI agent in production.",
-        topic="ai_agent_market",
+        topic="ai_agents",
         time_range="24h",
     )
     assert len(result.items) >= 1

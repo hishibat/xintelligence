@@ -130,9 +130,9 @@ def estimate_impact(
             reasoning.append("Structure: outline with headings present")
 
     # ---- Topic-level signals ---------------------------------------
-    if topic == "grok_xai" and source_url_count == 0:
+    if topic == "frontier_models" and source_url_count == 0:
         score -= 1.0
-        reasoning.append("Topic risk: grok_xai self-referential without sources")
+        reasoning.append("Topic risk: frontier_models self-referential without sources")
 
     if citationless_ratio >= 0.5:
         score -= 0.8

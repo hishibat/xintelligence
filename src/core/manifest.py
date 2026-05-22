@@ -30,7 +30,7 @@ def summarize_citationless(
     Returns (count, ratio, high_ratio_topics).
     A topic appears in high_ratio_topics if it has ≥ 1 item AND > threshold
     of its items are citationless. Useful for catching whole-topic quality
-    problems like the grok_xai self-referential failure mode.
+    problems like the frontier_models self-referential failure mode.
     """
     if not items:
         return 0, 0.0, []

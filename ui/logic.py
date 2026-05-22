@@ -26,17 +26,18 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # --- Whitelisted choices (mirror scripts/run_daily.py argparse) ----------
 TOPICS = [
     "claude_code",
-    "hermes_openclaw",
-    "ai_agent",
-    "grok_xai",
-    "competing_llms",
-    "ai_infra_vendors",
-    "ai_governance_data",
-    "career_consulting",
+    "ai_agents",
+    "frontier_models",
+    "multi_agent_systems",
+    "ai_infrastructure",
+    "data_platforms",
+    "ai_governance",
+    "enterprise_ai_adoption",
 ]
 PROVIDERS = ["mock", "hermes"]
 LLM_PROVIDERS = ["mock", "claude"]
 SEARCH_FALLBACKS = ["none", "mock"]
+TIME_RANGES = ["24h", "3d", "7d"]
 REVIEW_BUCKETS = ["approved", "rejected", "needs_fact_check"]
 
 # Reason tags exposed in Review Queue feedback UI.
@@ -56,14 +57,14 @@ REASON_TAGS = [
 # --- Topic suggestion (Priority 2) ---------------------------------------
 # Simple keyword → preset topic mapping. Suggestions are scored by overlap.
 TOPIC_KEYWORDS: dict[str, list[str]] = {
-    "claude_code": ["claude", "code", "anthropic", "coding agent", "cursor", "codex"],
-    "hermes_openclaw": ["hermes", "openclaw", "nous", "agent cli", "multi-provider"],
-    "ai_agent": ["agent", "agentic", "autonomous", "ai agent", "workflow"],
-    "grok_xai": ["grok", "xai", "imagine", "x.ai", "elon"],
-    "competing_llms": ["chatgpt", "gpt", "gemini", "copilot", "openai", "deepmind"],
-    "ai_infra_vendors": ["nvidia", "databricks", "snowflake", "nim", "aws", "azure", "bedrock"],
-    "ai_governance_data": ["governance", "compliance", "ai act", "data management", "lineage", "audit"],
-    "career_consulting": ["job", "career", "tech sales", "gtm", "hiring", "transition", "consulting"],
+    "claude_code": ["claude code", "anthropic", "claude api", "skills", "agent sdk", "claude opus"],
+    "ai_agents": ["agent", "agentic", "autonomous", "coding agent", "workflow"],
+    "frontier_models": ["gpt", "gemini", "claude opus", "grok", "xai", "deepmind", "frontier", "openai", "sota"],
+    "multi_agent_systems": ["multi-agent", "orchestration", "hermes", "crewai", "langgraph", "nous", "multi-provider"],
+    "ai_infrastructure": ["nvidia", "nim", "blackwell", "bedrock", "azure", "inference", "gpu"],
+    "data_platforms": ["snowflake", "databricks", "lakehouse", "bigquery", "unity catalog", "cortex"],
+    "ai_governance": ["governance", "ai act", "compliance", "responsible ai", "model risk", "policy"],
+    "enterprise_ai_adoption": ["enterprise", "copilot adoption", "fortune 500", "ai roi", "production ai", "transformation", "deployment", "adoption"],
 }
 
 
@@ -173,6 +174,7 @@ def build_run_command(
     search_fallback: str,
     topic: str,
     date_str: str | None = None,
+    time_range: str | None = None,
     python_exe: str | None = None,
 ) -> list[str]:
     """Build the argv for invoking ``scripts/run_daily.py`` as a subprocess.
@@ -188,6 +190,8 @@ def build_run_command(
         raise ValueError(f"search_fallback must be one of {SEARCH_FALLBACKS}, got {search_fallback!r}")
     if topic not in TOPICS:
         raise ValueError(f"topic must be one of {TOPICS}, got {topic!r}")
+    if time_range is not None and time_range not in TIME_RANGES:
+        raise ValueError(f"time_range must be one of {TIME_RANGES}, got {time_range!r}")
 
     py = python_exe or sys.executable or "python"
     script = str(PROJECT_ROOT / "scripts" / "run_daily.py")
@@ -200,6 +204,8 @@ def build_run_command(
     ]
     if date_str:
         cmd += ["--date", date_str]
+    if time_range:
+        cmd += ["--time-range", time_range]
     return cmd
 
 
@@ -395,6 +401,89 @@ def latest_review_for_draft(
     return None
 
 
+# --- Analytics aggregation -----------------------------------------------
+
+
+def aggregate_review_status(
+    outputs_root: Path | None = None,
+    *,
+    dates: list[str] | None = None,
+) -> dict[str, int]:
+    """Count review_status occurrences across feedback logs.
+
+    For a draft that has multiple log entries, only the LAST entry is counted
+    — that reflects the current bucket placement, not the history of changes.
+    If ``dates`` is None, all run dates are aggregated.
+    """
+    if dates is None:
+        dates = list_run_dates(outputs_root)
+    counts: dict[str, int] = {}
+    for d in dates:
+        last_by_draft: dict[str, str] = {}
+        for entry in read_review_log(d, outputs_root):
+            df = entry.get("draft_file", "")
+            status = entry.get("review_status", "")
+            if df and status:
+                last_by_draft[df] = status
+        for status in last_by_draft.values():
+            counts[status] = counts.get(status, 0) + 1
+    return counts
+
+
+def aggregate_reason_tags(
+    outputs_root: Path | None = None,
+    *,
+    dates: list[str] | None = None,
+) -> dict[str, int]:
+    """Count reason_tag occurrences across feedback logs.
+
+    All tags from all entries are counted (a single feedback can attach
+    multiple tags, and revising feedback adds new tag counts).
+    """
+    if dates is None:
+        dates = list_run_dates(outputs_root)
+    counts: dict[str, int] = {}
+    for d in dates:
+        for entry in read_review_log(d, outputs_root):
+            for tag in entry.get("reason_tags", []) or []:
+                counts[tag] = counts.get(tag, 0) + 1
+    return counts
+
+
+def aggregate_run_history(outputs_root: Path | None = None) -> list[dict[str, Any]]:
+    """Return per-run summary rows for time-series charts.
+
+    Each row carries the run date, citationless_ratio, provider, llm_provider,
+    fallback count, and warning count. Sorted oldest-first for line charts.
+    """
+    rows: list[dict[str, Any]] = []
+    for d in list_run_dates(outputs_root):
+        m = load_manifest(d, outputs_root)
+        if not m:
+            continue
+        rows.append({
+            "date": d,
+            "citationless_ratio": float(m.get("citationless_ratio") or 0.0),
+            "citationless_items_count": int(m.get("citationless_items_count") or 0),
+            "provider": m.get("provider", "—"),
+            "llm_provider": m.get("llm_provider", "—"),
+            "fallback_count": len(m.get("fallback_used") or []),
+            "warning_count": len(m.get("warnings") or []),
+            "high_ratio_topics": list(m.get("topics_with_high_citationless_ratio") or []),
+        })
+    rows.sort(key=lambda r: r["date"])
+    return rows
+
+
+def aggregate_high_ratio_topics(outputs_root: Path | None = None) -> dict[str, int]:
+    """Count how often each topic appeared in topics_with_high_citationless_ratio."""
+    counts: dict[str, int] = {}
+    for row in aggregate_run_history(outputs_root):
+        for t in row["high_ratio_topics"]:
+            counts[t] = counts.get(t, 0) + 1
+    return counts
+
+
 # --- Topic suggestion (Priority 2) ---------------------------------------
 
 
@@ -425,6 +514,7 @@ def build_run_command_custom(
     custom_query: str,
     custom_topic_id: str = "custom",
     date_str: str | None = None,
+    time_range: str | None = None,
     python_exe: str | None = None,
 ) -> list[str]:
     """Build argv for a custom-query run (bypasses preset topic keyword list).
@@ -440,6 +530,8 @@ def build_run_command_custom(
         raise ValueError(f"search_fallback must be one of {SEARCH_FALLBACKS}, got {search_fallback!r}")
     if not custom_query or not custom_query.strip():
         raise ValueError("custom_query must be a non-empty string")
+    if time_range is not None and time_range not in TIME_RANGES:
+        raise ValueError(f"time_range must be one of {TIME_RANGES}, got {time_range!r}")
 
     py = python_exe or sys.executable or "python"
     script = str(PROJECT_ROOT / "scripts" / "run_daily.py")
@@ -453,4 +545,6 @@ def build_run_command_custom(
     ]
     if date_str:
         cmd += ["--date", date_str]
+    if time_range:
+        cmd += ["--time-range", time_range]
     return cmd

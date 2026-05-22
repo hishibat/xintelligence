@@ -69,24 +69,35 @@ DEFAULT_CITATION_CONSTRAINT = (
 # Only listed topics get an override; all others see the default constraint
 # alone. Used to suppress self-referential failure modes where the model
 # would otherwise answer from internal knowledge.
+#
+# frontier_models bucket includes Grok / xAI queries which trigger the
+# self-referential failure mode (model = Grok answering about itself).
+# The override stays focused on Grok-side guidance because that is the
+# documented failure mode; queries about GPT-5 / Gemini / Claude in the
+# same bucket are unaffected by the override (only adds, never removes).
 TOPIC_PROMPT_OVERRIDES: dict[str, str] = {
-    "grok_xai": (
-        "\n\nTOPIC-SPECIFIC OVERRIDE — GROK/XAI TOPIC:\n"
-        "This query is about Grok, xAI, Grok Imagine, Grok models, or xAI APIs. "
-        "The selected model may have internal knowledge about these topics, but "
-        "this task requires evidence from X posts. Do not answer from internal "
-        "knowledge alone.\n\n"
+    "frontier_models": (
+        "\n\nTOPIC-SPECIFIC OVERRIDE — FRONTIER MODELS (incl. GROK/XAI):\n"
+        "This query is about frontier LLMs (GPT-5, Gemini, Claude Opus, Grok 4, etc.). "
+        "When the query touches Grok, xAI, Grok Imagine, or xAI APIs specifically, the "
+        "selected model (Grok via Hermes) may have internal knowledge about itself — "
+        "do NOT answer from internal knowledge alone.\n\n"
         "Required behavior:\n"
         "- Use x_search to find what people are saying on X.\n"
-        "- Prefer sources in this order: @xai official posts, @elonmusk or xAI executives, "
-        "xAI engineers/researchers, credible AI engineers/researchers, and users sharing "
-        "real usage experience.\n"
+        "- For Grok/xAI subtopics, prefer sources in this order: @xai official posts, "
+        "@elonmusk or xAI executives, xAI engineers/researchers, credible AI "
+        "engineers/researchers, and users sharing real usage experience.\n"
+        "- For GPT/Gemini/Claude subtopics, prefer the corresponding official accounts "
+        "(@OpenAI / @sama / @GoogleDeepMind / @demishassabis / @AnthropicAI) and "
+        "credible third-party benchmarks.\n"
         "- Every important claim must be supported by at least one X post URL.\n"
-        "- Focus on what changed, what people are reacting to, and why it matters for AI agents, "
-        "content automation, enterprise AI adoption, or career/tech sales implications.\n"
+        "- Focus on what changed, what people are reacting to, and why it matters for "
+        "AI agents, content automation, enterprise AI adoption, or career/tech sales "
+        "implications.\n"
         "- Do not provide a generic product explanation from memory.\n"
         "- If x_search returns no relevant X posts, explicitly write 'Sources: none found' "
-        "and explain that no relevant X posts were found. Do not silently substitute internal knowledge.\n"
+        "and explain that no relevant X posts were found. Do not silently substitute "
+        "internal knowledge.\n"
     ),
 }
 
