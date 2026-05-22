@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from ui.logic import (
+    BROAD_TOPICS,
     LLM_PROVIDERS,
     PROVIDERS,
     REVIEW_BUCKETS,
@@ -16,6 +17,8 @@ from ui.logic import (
     build_run_command,
     build_run_command_custom,
     classify_citationless_ratio,
+    compute_run_warnings,
+    is_hermes_timeout_failure,
     latest_run_date,
     list_bucket,
     list_drafts,
@@ -275,6 +278,141 @@ def test_build_run_command_custom_accepts_each_time_range(tr):
 
 def test_time_ranges_constant():
     assert TIME_RANGES == ["24h", "3d", "7d"]
+
+
+# ---------------------------------------------------------------- pre-run warnings
+
+
+def test_compute_run_warnings_24h_returns_nothing():
+    ws = compute_run_warnings(
+        provider="hermes", search_fallback="none",
+        topic="claude_code", time_range="24h",
+    )
+    assert ws == []
+
+
+def test_compute_run_warnings_24h_with_broad_topic_still_silent():
+    # 24h is fast regardless of topic breadth → no warning expected
+    ws = compute_run_warnings(
+        provider="hermes", search_fallback="none",
+        topic="enterprise_ai_adoption", time_range="24h",
+    )
+    assert ws == []
+
+
+def test_compute_run_warnings_3d_emits_info_only():
+    ws = compute_run_warnings(
+        provider="hermes", search_fallback="none",
+        topic="claude_code", time_range="3d",
+    )
+    severities = [w["severity"] for w in ws]
+    assert "info" in severities
+    assert "warning" not in severities
+    assert any("3d" in w["message"] for w in ws)
+    assert any("mock" in w["message"] for w in ws)
+
+
+def test_compute_run_warnings_7d_emits_warning():
+    ws = compute_run_warnings(
+        provider="hermes", search_fallback="mock",
+        topic="claude_code", time_range="7d",
+    )
+    severities = [w["severity"] for w in ws]
+    assert "warning" in severities
+    assert any("HERMES_TIMEOUT_SECONDS" in w["message"] for w in ws)
+
+
+def test_compute_run_warnings_7d_fail_loud_hermes_critical_near_run_button():
+    ws = compute_run_warnings(
+        provider="hermes", search_fallback="none",
+        topic="claude_code", time_range="7d",
+    )
+    run_btn_warnings = [w for w in ws if w["location"] == "run_button"]
+    assert len(run_btn_warnings) == 1
+    msg = run_btn_warnings[0]["message"]
+    assert "Fail-loud" in msg or "fail-loud" in msg
+    assert "mock" in msg
+    assert run_btn_warnings[0]["severity"] == "warning"
+
+
+def test_compute_run_warnings_7d_fail_loud_mock_provider_omits_critical():
+    # mock provider has no Hermes timeout risk → critical warning is suppressed
+    ws = compute_run_warnings(
+        provider="mock", search_fallback="none",
+        topic="claude_code", time_range="7d",
+    )
+    run_btn_warnings = [w for w in ws if w["location"] == "run_button"]
+    assert run_btn_warnings == []
+    # but the generic 7d sidebar warning is still there
+    assert any(w["location"] == "sidebar" for w in ws)
+
+
+def test_compute_run_warnings_7d_fallback_mock_omits_critical():
+    ws = compute_run_warnings(
+        provider="hermes", search_fallback="mock",
+        topic="claude_code", time_range="7d",
+    )
+    run_btn_warnings = [w for w in ws if w["location"] == "run_button"]
+    assert run_btn_warnings == []
+
+
+@pytest.mark.parametrize("topic", sorted(BROAD_TOPICS))
+def test_compute_run_warnings_broad_topic_7d_adds_extra(topic: str):
+    ws = compute_run_warnings(
+        provider="hermes", search_fallback="mock",
+        topic=topic, time_range="7d",
+    )
+    msgs = [w["message"] for w in ws]
+    assert any(topic in m and "broad" in m.lower() for m in msgs)
+
+
+def test_compute_run_warnings_narrow_topic_7d_no_broad_extra():
+    # claude_code is NOT in BROAD_TOPICS — broad-topic addendum must not fire.
+    # (The generic 7d warning mentions "broad topics" in passing; the
+    # addendum is the one that mentions the topic NAME and "broad keywords".)
+    ws = compute_run_warnings(
+        provider="hermes", search_fallback="mock",
+        topic="claude_code", time_range="7d",
+    )
+    assert not any("claude_code" in w["message"] for w in ws)
+    assert not any("broad keywords" in w["message"] for w in ws)
+
+
+def test_compute_run_warnings_custom_topic_none_no_broad_check():
+    # Custom mode passes topic=None — broad check must not fire
+    ws = compute_run_warnings(
+        provider="hermes", search_fallback="mock",
+        topic=None, time_range="7d",
+    )
+    # generic 7d sidebar warning still appears
+    assert any(w["location"] == "sidebar" for w in ws)
+    # but the broad-topic addendum (signature phrase "broad keywords") does not
+    assert not any("broad keywords" in w["message"] for w in ws)
+
+
+# ---------------------------------------------------------------- timeout detector
+
+
+def test_is_hermes_timeout_failure_detects_realistic_stderr():
+    stderr = (
+        "[INFO] x-intelligence: provider=hermes llm=claude topic=enterprise_ai_adoption\n"
+        "[WARNING] x-intelligence: Hermes failed: Hermes timed out after 180s\n"
+        "[ERROR] x-intelligence: search provider failed (fail-loud mode)"
+    )
+    assert is_hermes_timeout_failure(stderr) is True
+
+
+def test_is_hermes_timeout_failure_false_for_other_errors():
+    assert is_hermes_timeout_failure("Some unrelated SDK error") is False
+    assert is_hermes_timeout_failure("") is False
+    assert is_hermes_timeout_failure(None or "") is False
+
+
+def test_is_hermes_timeout_failure_false_when_only_hermes_or_only_timeout():
+    # mentioning Hermes alone (no timeout) → not the timeout case
+    assert is_hermes_timeout_failure("Hermes returned 0 items") is False
+    # timeout in some other tool, not Hermes → not the timeout case
+    assert is_hermes_timeout_failure("requests.exceptions.Timeout: read timed out") is False
 
 
 # ---------------------------------------------------------------- display

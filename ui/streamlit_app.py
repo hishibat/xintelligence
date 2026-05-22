@@ -28,6 +28,7 @@ if str(ROOT) not in sys.path:
 
 from src.core.impact_estimator import estimate_impact  # noqa: E402
 from ui.logic import (  # noqa: E402
+    HERMES_TIMEOUT_FRIENDLY_MESSAGE,
     LLM_PROVIDERS,
     PROVIDERS,
     REASON_TAGS,
@@ -42,6 +43,8 @@ from ui.logic import (  # noqa: E402
     build_run_command,
     build_run_command_custom,
     classify_citationless_ratio,
+    compute_run_warnings,
+    is_hermes_timeout_failure,
     latest_review_for_draft,
     list_bucket,
     list_drafts,
@@ -56,6 +59,15 @@ from ui.logic import (  # noqa: E402
     save_review_action,
     suggest_topics,
 )
+
+
+def _render_warnings(warnings: list[dict[str, str]]) -> None:
+    """Render the list returned by compute_run_warnings."""
+    for w in warnings:
+        if w["severity"] == "warning":
+            st.warning(w["message"])
+        else:
+            st.info(w["message"])
 
 
 # ---------------------------------------------------------------- page setup
@@ -131,6 +143,26 @@ with st.sidebar:
             "Does NOT affect search recency — that is controlled by Time range above."
         ),
     )
+
+    # Pre-run warnings — compute once and split by location so the
+    # critical "fail-loud + 7d + hermes" message sits next to the Run
+    # button where the user is about to click.
+    _topic_for_warn = topic if topic_mode == "Preset" else None
+    _pre_run_warnings = compute_run_warnings(
+        provider=provider,
+        search_fallback=search_fallback,
+        topic=_topic_for_warn,
+        time_range=time_range,
+    )
+    _sidebar_warnings = [w for w in _pre_run_warnings if w["location"] == "sidebar"]
+    _run_button_warnings = [w for w in _pre_run_warnings if w["location"] == "run_button"]
+
+    if _sidebar_warnings:
+        _render_warnings(_sidebar_warnings)
+
+    if _run_button_warnings:
+        _render_warnings(_run_button_warnings)
+
     run_btn = st.button("▶ Run pipeline", type="primary", use_container_width=True)
 
     st.divider()
@@ -201,6 +233,11 @@ if run_btn:
         st.session_state.selected_view_date = str(run_date_input)
     else:
         st.error(f"❌ Pipeline failed (exit {result.returncode}). See stderr below.")
+        # If the failure is the well-known Hermes timeout, surface a
+        # friendly remediation banner ABOVE the raw stderr so the user
+        # sees actionable guidance first.
+        if is_hermes_timeout_failure(result.stderr or ""):
+            st.warning(HERMES_TIMEOUT_FRIENDLY_MESSAGE)
 
     with st.expander("stdout"):
         st.code(result.stdout or "(empty)", language="text")

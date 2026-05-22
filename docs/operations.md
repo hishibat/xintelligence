@@ -99,6 +99,29 @@ python scripts\check_hermes.py         # Hermes 6 項目 (fallback 禁止)
 | **検証 (validation)** | `--search-fallback none` | Hermes 失敗時 exit ≠ 0 で即停止。 新 prompt / 新 provider 投入時に問題を即発見 |
 | **日次運用 (daily)** | `--search-fallback mock` | Hermes 失敗時 mock に降格、`fallback_used` + `warnings` に記録、全 artifact は出る |
 
+### 2.2.1 Streamlit UI でハンズオン確認するとき
+
+Streamlit Review Console (`python -m streamlit run ui/streamlit_app.py`) で
+触る時の推奨は **`time_range=24h` + `search_fallback=mock`**。
+
+| ケース | 推奨設定 | 理由 |
+|---|---|---|
+| **ハンズオン / デモ** | `time_range=24h`, `search_fallback=mock` | Hermes は通常 30-60s で返る。万一失敗しても mock 降格で artifact は出る |
+| **新 prompt / 新 topic の検証** | `time_range=24h`, `search_fallback=none` | fail-loud で問題を見逃さない |
+| **週末 catch-up (3d/7d)** | `time_range=3d` or `7d`, `search_fallback=mock` | x_search が広 query で 180s を超えやすい。mock 降格で完走優先 |
+| **3d/7d を fail-loud で通したい** | `search_fallback=none` + `HERMES_TIMEOUT_SECONDS=300` を `.env` に追加 | default 180s では足りないケース。`.env` 変更後は Streamlit 再起動が必要 |
+
+> 🚨 **やってはいけない組み合わせ**: `provider=hermes` + `search_fallback=none` + `time_range=7d` + broad topic (enterprise_ai_adoption / frontier_models / ai_agents / multi_agent_systems) — 180s timeout で確実に `exit 4` する。UI には pre-run warning が出るので、それに従って `search_fallback=mock` に切り替えるか、上記の timeout 延長を行うこと。
+
+### 2.2.2 `HERMES_TIMEOUT_SECONDS` の default を変えない理由
+
+UI に warning を追加した時点 (2026-05-22) では、default 180s を維持する。
+
+- 24h run は 30-60s で returns する想定 → 180s で十分
+- 300s に default を引き上げると 24h run の異常 (Hermes hang) を 2 分余分に待つことになる
+- まず UI warning で「ユーザーが事前に回避できる UX」を観測する
+- それでも timeout 多発するようなら default 引き上げを再検討（一律ではなく、`time_range=7d` 選択時のみ動的に extend する案も含めて）
+
 ### 2.3 朝の標準オペレーション (例)
 
 ```powershell

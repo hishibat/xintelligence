@@ -40,6 +40,17 @@ SEARCH_FALLBACKS = ["none", "mock"]
 TIME_RANGES = ["24h", "3d", "7d"]
 REVIEW_BUCKETS = ["approved", "rejected", "needs_fact_check"]
 
+# Topics whose keywords return very broad x_search result sets. Combined
+# with 3d/7d time ranges, these can blow past HERMES_TIMEOUT_SECONDS=180s.
+# Update this set whenever config/keywords.yaml gains a keyword that is
+# obviously broad (e.g. "AI" alone).
+BROAD_TOPICS = {
+    "enterprise_ai_adoption",
+    "frontier_models",
+    "ai_agents",
+    "multi_agent_systems",
+}
+
 # Reason tags exposed in Review Queue feedback UI.
 REASON_TAGS = [
     "hook_weak",
@@ -482,6 +493,103 @@ def aggregate_high_ratio_topics(outputs_root: Path | None = None) -> dict[str, i
         for t in row["high_ratio_topics"]:
             counts[t] = counts.get(t, 0) + 1
     return counts
+
+
+# --- Pre-run warnings (Sidebar UX) ---------------------------------------
+
+
+def compute_run_warnings(
+    *,
+    provider: str,
+    search_fallback: str,
+    topic: str | None,
+    time_range: str | None,
+) -> list[dict[str, str]]:
+    """Return per-combination warnings the UI should render BEFORE Run.
+
+    Each entry is a dict with:
+        severity  ∈ {"info", "warning"}
+        location  ∈ {"sidebar", "run_button"}
+        message   — human-readable string (Markdown OK)
+
+    Pure function, no Streamlit imports — testable in isolation.
+    """
+    warnings: list[dict[str, str]] = []
+
+    # 3d range — informational
+    if time_range == "3d":
+        warnings.append({
+            "severity": "info",
+            "location": "sidebar",
+            "message": (
+                "**3d range** may take longer and consume more tokens. "
+                "For UI testing, `search_fallback=mock` is recommended."
+            ),
+        })
+
+    # 7d range — stronger warning
+    if time_range == "7d":
+        warnings.append({
+            "severity": "warning",
+            "location": "sidebar",
+            "message": (
+                "**7d range** can timeout with broad topics. Use "
+                "`search_fallback=mock` for daily use, or increase "
+                "`HERMES_TIMEOUT_SECONDS=300` for fail-loud validation."
+            ),
+        })
+
+    # 7d + fail-loud + hermes — critical, surfaced next to the Run button
+    if (
+        time_range == "7d"
+        and search_fallback == "none"
+        and provider == "hermes"
+    ):
+        warnings.append({
+            "severity": "warning",
+            "location": "run_button",
+            "message": (
+                "⚠️ **Fail-loud mode with 7d Hermes search may timeout.** "
+                "Recommended: switch **Search fallback** to `mock` for "
+                "hands-on testing."
+            ),
+        })
+
+    # Broad topic + 7d — extra heads-up
+    if time_range == "7d" and topic in BROAD_TOPICS:
+        warnings.append({
+            "severity": "warning",
+            "location": "sidebar",
+            "message": (
+                f"Topic `{topic}` has **broad keywords**. With 7d range, "
+                "`x_search` may return very large result sets and increase "
+                "timeout risk."
+            ),
+        })
+
+    return warnings
+
+
+def is_hermes_timeout_failure(stderr: str) -> bool:
+    """Heuristic: detect Hermes timeout in subprocess stderr.
+
+    Used by the UI to swap raw stderr for a friendly remediation message
+    when the failure mode is the well-known 180s timeout.
+    """
+    if not stderr:
+        return False
+    s = stderr.lower()
+    return "hermes" in s and ("timed out" in s or "timeout" in s)
+
+
+HERMES_TIMEOUT_FRIENDLY_MESSAGE = (
+    "🕒 **Hermes timed out.** This is common for **broad topics with "
+    "3d/7d ranges**. Try **`time_range=24h`**, or set **`Search "
+    "fallback=mock`** so the pipeline degrades to mock data and still "
+    "produces artifacts. For fail-loud 7d validation, raise "
+    "`HERMES_TIMEOUT_SECONDS=300` in your `.env` before launching "
+    "Streamlit."
+)
 
 
 # --- Topic suggestion (Priority 2) ---------------------------------------
