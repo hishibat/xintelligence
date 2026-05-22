@@ -4,6 +4,65 @@
 > セットアップ手順は `README.md`、要件は `docs/requirements.md`、内部設計は `docs/design.md` を参照。
 > Hermes CLI 実態仕様は `docs/hermes_cli_spec.md` 参照。
 
+## 0. Streamlit UI (review console)
+
+CLI 出力ファイルをブラウザで確認・分類するためのローカル UI。**投稿機能なし**、
+ファイル移動とローカル subprocess 起動のみ。
+
+### 0.1 起動
+
+```powershell
+cd "C:\Users\Hideyuki Shibata\workspace\company\Content_Production\x-intelligence"
+python -m streamlit run ui/streamlit_app.py
+```
+
+ブラウザで `http://localhost:8501` が自動で開く。
+
+> なぜ `python -m streamlit run` か:
+> Windows ユーザーサイト install (`pip install --user` / 書込権限制限環境)
+> では `streamlit.exe` が `%APPDATA%\Python\Python3xx\Scripts\` に入り
+> PATH に通っていないケースがある。`python -m streamlit run` は
+> どの環境でも動くため正規ルートに採用。
+
+### 0.2 UI でできること
+
+| 機能 | 詳細 |
+|---|---|
+| Pipeline 起動 | Sidebar の Run button で `scripts/run_daily.py` を subprocess 実行。引数 (topic / provider / llm_provider / search_fallback / date) は UI で選択。stdout/stderr は折りたたみ表示 |
+| Daily Report tab | `report.md` を Markdown 表示。`run_manifest.json` の主要項目を 🟢🟡🔴 カードで可視化 (citationless_ratio / fallback_used / warnings / topics_with_high_citationless_ratio) |
+| Drafts tab | `01_x_post.md` / `02_x_thread.md` / `03_note_outline.md` / `04_linkedin.md` をサブタブで切替表示 |
+| Video Prompts tab | `01_note_header.md` / `02_x_short.md` / `03_linkedin_visual.md` / `04_youtube_shorts.md` を表示 |
+| Review Queue tab | 各 draft に `approved / rejected / needs_fact_check` 移動ボタン (純粋なローカル `shutil.move` のみ、外部送信なし) + bucket 内のファイル一覧 |
+| Files tab | 当該 run の全 outputs ファイルパスを表示 |
+
+### 0.3 UI でできないこと (恒久禁止)
+
+- **X / Note / LinkedIn への投稿** — Streamlit UI は **絶対に投稿しない**。
+- **外部 API への送信** — Move ボタンは `shutil.move` のみ、ネットワーク呼び出しなし。
+- **`.env` の書き換え** — UI は環境変数を読み取らず、key 操作もしない。
+- **outputs 外のファイル操作** — File Path 検証で project root 外の操作はエラー。
+
+これらは `tests/test_no_auto_posting_capability.py` が `ui/` 配下も含めて
+常時検証 (本 commit から ui/ が scan 対象に追加)。万一 posting endpoint /
+SDK / 関数名が混入すると pytest が即時 fail。
+
+### 0.4 UI 推奨ワークフロー (毎朝)
+
+```
+1. python -m streamlit run ui/streamlit_app.py
+2. Sidebar で topic 選択 (e.g. claude_code) → Run
+   → 完了通知を待つ (1-5 分)
+3. Daily Report tab で manifest カードを確認
+   - 🟢 なら次へ / 🔴 なら該当 topic 再実行
+4. Drafts tab で 4 channel を順に読む
+5. Review Queue tab で各 draft を approved / rejected / needs_fact_check に分類
+6. approved/ にあるファイルを開き、手動で X / Note / LinkedIn に投稿
+```
+
+UI を使わない場合の手順は §2 以降の CLI 手順を参照。
+
+---
+
 ## 1. 前提
 
 ### 1.1 必要な環境

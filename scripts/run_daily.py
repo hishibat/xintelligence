@@ -108,6 +108,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "(daily resilience mode)."
         ),
     )
+    p.add_argument(
+        "--custom-query",
+        default=None,
+        help=(
+            "Bypass the preset keyword list and run a single free-form query "
+            "via the chosen provider. Used by the Streamlit UI's Custom Topic "
+            "mode. Required to also pass --custom-topic-id for output naming."
+        ),
+    )
+    p.add_argument(
+        "--custom-topic-id",
+        default="custom",
+        help=(
+            "Synthetic topic id to organise outputs under when --custom-query "
+            "is provided. Defaults to 'custom'."
+        ),
+    )
     return p.parse_args(argv)
 
 
@@ -129,7 +146,16 @@ def main(argv: list[str] | None = None) -> int:
     # --- search -------------------------------------------------------------
     themes = (cfg.keywords or {}).get("themes", {}) or {}
     queries: list[tuple[str, str]] = []
-    if args.topic == "all":
+    if args.custom_query:
+        # Custom-query path bypasses the preset keyword list entirely.
+        # The (topic_id, query) pair is emitted with topic_id = the synthetic
+        # label from --custom-topic-id so outputs land under that name.
+        queries.append((args.custom_topic_id, args.custom_query.strip()))
+        LOG.info(
+            "custom-query mode: 1 query under synthetic topic_id=%r",
+            args.custom_topic_id,
+        )
+    elif args.topic == "all":
         for tid, body in themes.items():
             for kw in body.get("keywords", []) or []:
                 queries.append((tid, kw))

@@ -199,6 +199,24 @@ VPS / リモートホスト上で Hermes を常駐させ、ローカルからは
 - `HERMES_OAUTH_TOKEN` をローテーションする際に同期手順を明文化すること
 - アカウント制限・rate limit がリモート IP 単位でかかる可能性あり
 
+## Streamlit UI (review console)
+
+CLI 出力をブラウザで確認・分類するローカル UI。**投稿機能なし**、ファイル
+移動とローカル subprocess 起動のみ。
+
+```powershell
+python -m streamlit run ui/streamlit_app.py
+```
+
+→ `http://localhost:8501` で UI 起動。Sidebar から topic/provider/llm/fallback を選んで
+Run、結果は Daily Report / Drafts / Video Prompts / Review Queue / Files の
+5 タブで閲覧。`approved / rejected / needs_fact_check` への分類はローカル
+ファイル移動のみで実行（外部送信なし）。詳細は [`docs/operations.md` §0](docs/operations.md)。
+
+> Windows ユーザーサイト install で `streamlit.exe` が PATH に通らない
+> ケースを避けるため、起動コマンドは常に `python -m streamlit run ...`
+> 形式を使う。
+
 ## MVP 実行方法
 
 ```powershell

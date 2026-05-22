@@ -22,6 +22,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 SCRIPTS = ROOT / "scripts"
+UI = ROOT / "ui"
 
 # Function-name patterns that smell like "posting to a social network".
 # Read tools (get_*, search_*) are explicitly excluded.
@@ -67,7 +68,9 @@ FORBIDDEN_IMPORTS = [
 
 def _all_python_files() -> list[Path]:
     files: list[Path] = []
-    for base in (SRC, SCRIPTS):
+    for base in (SRC, SCRIPTS, UI):
+        if not base.exists():
+            continue
         files.extend(base.rglob("*.py"))
     # exclude __pycache__
     return [f for f in files if "__pycache__" not in f.parts]
