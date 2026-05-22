@@ -14,12 +14,33 @@ from src.adapters.llm_base import LLMProvider
 from src.core.schema import ScoredItem, TrendSummary
 
 
-_STOP = set(
+_STOP = set((
+    # Articles / prepositions / pronouns / common verbs
     "the a an of and or to is it in for on with at by from as that this be we "
     "you our your they i he she them this these those just very more most much "
-    "が の に を は と も で て だ です ます ある いる する した して これ それ".split()
-)
+    "are was were has have had been being do does did can will would could should "
+    "may might also any all some such other than then there here when where why how "
+    "into onto over under between among across through without within "
+    # Japanese function words
+    "が の に を は と も で て だ です ます ある いる する した して これ それ "
+    # Web/URL noise frequently leaking from Hermes citation responses
+    "http https www com org net io co jp x t status post posts tweet tweets url urls "
+    "html htm pdf jpg png gif mp4 mp3 css js json xml api uri href src "
+    # Generic narrative verbs the model loves
+    "say says said tell tells told describe describes described explain explains "
+    "explained share shares shared mention mentions mentioned report reports reported "
+    "note notes noted point points pointed make makes made take takes took give gives "
+    "gave use uses used see sees saw show shows showed get gets got "
+    # Generic nouns rarely informative alone
+    "thing things item items people person user users way ways time times day days "
+    "week weeks month months year years new old big small recent recently latest"
+).split())
+
 _WORD = re.compile(r"[A-Za-z][A-Za-z0-9\-/]{2,}|[一-鿿]{2,}")
+
+# Tokens that look like fragments of URLs / hashtags / handles we never want
+# as "emerging keywords" — they leak in from x_search citation summaries.
+_URL_FRAGMENT = re.compile(r"^(?:https?|www|x\.com|twitter\.com|t\.co|github|co/[a-z0-9]+)$", re.I)
 
 
 def _extract_keywords(items: list[ScoredItem], k: int = 5) -> list[str]:
@@ -27,7 +48,17 @@ def _extract_keywords(items: list[ScoredItem], k: int = 5) -> list[str]:
     for it in items:
         for tok in _WORD.findall(it.post.primary_text()):
             t = tok.lower()
-            if t in _STOP or len(t) <= 2:
+            if t in _STOP:
+                continue
+            if len(t) <= 2:
+                continue
+            # Drop pure-digit tokens and URL fragments
+            if t.isdigit():
+                continue
+            if _URL_FRAGMENT.match(t):
+                continue
+            # Drop tokens that are all-numeric with dashes (e.g. timestamps)
+            if all(c.isdigit() or c in "-/" for c in t):
                 continue
             counter[t] += 1
     return [w for w, _ in counter.most_common(k)]

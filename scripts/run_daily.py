@@ -170,7 +170,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # --- normalize / dedupe / verification ----------------------------------
     deduped = dedupe(raw_items)
-    tagged = tag_items(deduped)
+    tagged = tag_items(deduped, official_handles=cfg.official_handles)
 
     # --- score --------------------------------------------------------------
     weights = ((cfg.output or {}).get("scoring", {}) or {}).get("weights", {}) or {}

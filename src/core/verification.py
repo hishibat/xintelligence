@@ -3,6 +3,13 @@
 Sources are tagged conservatively: anything we can't confirm stays
 ``unverified`` or ``needs_manual_check``. Risk flags are additive — a
 single post can carry multiple (rumor + hype + product_claim etc.).
+
+source_type promotion: if a post / citation references an X handle that
+appears in ``config/official_handles.yaml``, the source_type is upgraded
+to the strongest category that matches (official > founder_executive >
+engineer_dev > media > influencer). This catches the common Hermes case
+where SearchCitationResult is returned with source_type="unknown" but the
+cited_urls contain well-known org / founder handles.
 """
 from __future__ import annotations
 
@@ -16,6 +23,63 @@ from src.core.schema import (
     StructuredPost,
     VerificationStatus,
 )
+
+
+_HANDLE_FROM_URL = re.compile(
+    r"https?://(?:x|twitter)\.com/([^/\s\"']+)/status/", re.IGNORECASE
+)
+
+_SOURCE_TYPE_PRIORITY: list[str] = [
+    "official", "founder_executive", "engineer_dev", "media", "influencer",
+]
+
+
+def _build_handle_index(handles_cfg: dict | None) -> dict[str, str]:
+    """Return {lowercased_handle: source_type_label} from config dict."""
+    if not handles_cfg:
+        return {}
+    index: dict[str, str] = {}
+    # Iterate in priority order so higher tier wins on duplicate listings
+    for tier in _SOURCE_TYPE_PRIORITY:
+        for h in (handles_cfg.get(tier) or []):
+            key = str(h).lower().lstrip("@")
+            if key not in index:  # higher-tier assignment wins
+                index[key] = tier
+    return index
+
+
+def _extract_handles(item: Post) -> list[str]:
+    """Pull X handles from all URLs / author fields attached to the item."""
+    handles: list[str] = []
+    if isinstance(item, StructuredPost):
+        if item.author_handle:
+            handles.append(item.author_handle.lstrip("@").lower())
+        if item.url:
+            m = _HANDLE_FROM_URL.search(item.url)
+            if m:
+                handles.append(m.group(1).lower())
+    elif isinstance(item, SearchCitationResult):
+        for u in item.cited_urls:
+            m = _HANDLE_FROM_URL.search(u)
+            if m:
+                handles.append(m.group(1).lower())
+    return handles
+
+
+def _resolve_source_type(item: Post, handle_index: dict[str, str]) -> str | None:
+    """Best (highest-priority) source_type among handles referenced by item."""
+    if not handle_index:
+        return None
+    handles = _extract_handles(item)
+    if not handles:
+        return None
+    matches = [handle_index[h] for h in handles if h in handle_index]
+    if not matches:
+        return None
+    for tier in _SOURCE_TYPE_PRIORITY:
+        if tier in matches:
+            return tier
+    return None
 
 
 _PRICING = re.compile(r"\$\s?\d|¥\s?\d|円|per\s+(?:1?k|million|month)|/hour|/月|無料枠|free tier", re.I)
@@ -62,9 +126,22 @@ def _classify_status(
     return "unverified"
 
 
-def tag_items(items: list[Post]) -> list[Post]:
-    """Mutate verification tags in place and return the same list."""
+def tag_items(items: list[Post], *, official_handles: dict | None = None) -> list[Post]:
+    """Mutate verification tags in place and return the same list.
+
+    If ``official_handles`` (the parsed ``config/official_handles.yaml``)
+    is provided, source_type for each item is promoted when its cited
+    handles appear in the registry.
+    """
+    handle_index = _build_handle_index(official_handles)
+
     for item in items:
+        # Promote source_type from handle registry first so downstream
+        # _classify_status uses the upgraded value.
+        promoted = _resolve_source_type(item, handle_index)
+        if promoted:
+            item.verification.source_type = promoted  # type: ignore[assignment]
+
         text = item.primary_text()
         risk_flags = _detect_risk_flags(text)
         if isinstance(item, SearchCitationResult):

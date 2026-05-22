@@ -115,10 +115,10 @@ def write_drafts_md(out_dir: Path, drafts: list[ContentDraft]) -> list[Path]:
             "## draft_text",
             d.draft_text,
         ]
-        if d.note_title_candidates:
-            lines += ["", "## note_title_candidates", *[f"- {t}" for t in d.note_title_candidates]]
-        if d.note_outline:
-            lines += ["", "## note_outline", *[f"- {o}" for o in d.note_outline]]
+        # NOTE: note_title_candidates / note_outline are extracted into the
+        # ContentDraft dataclass for programmatic access, but they are NOT
+        # written here — they would duplicate content already in draft_text
+        # (Claude returns titles + outline + lead in the same narrative).
         path.write_text("\n".join(lines), encoding="utf-8")
         written.append(path)
     return written
@@ -241,7 +241,16 @@ def write_xlsx(
     drafts: list[ContentDraft],
     video_prompts: list[VideoPrompt],
 ) -> None:
-    from openpyxl import Workbook
+    try:
+        from openpyxl import Workbook
+    except ImportError as e:
+        raise RuntimeError(
+            "openpyxl is not installed. Excel output requires openpyxl>=3.1.\n"
+            "  Fix: pip install -r requirements.txt   (run from project root)\n"
+            "  Or:  pip install 'openpyxl>=3.1'\n"
+            "openpyxl is listed in requirements.txt and pyproject.toml; "
+            "this error means your active Python env did not install it."
+        ) from e
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     wb = Workbook()

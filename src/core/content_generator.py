@@ -59,6 +59,20 @@ def _too_similar(source_text: str, draft_text: str, threshold: float = 0.80) -> 
     return ratio >= threshold
 
 
+_TERMINATORS = set('.。!?！？")—、')
+
+
+def _looks_complete(text: str) -> bool:
+    """Return True iff the last non-whitespace char looks like a sentence end.
+
+    Detects max_tokens-induced truncations (the model stopped mid-sentence).
+    """
+    s = text.rstrip()
+    if not s:
+        return True
+    return s[-1] in _TERMINATORS
+
+
 def _build_my_angle(post: Post, profile: dict[str, Any]) -> str:
     focus_high = (profile.get("focus_areas", {}) or {}).get("high_priority", []) or []
     matched = [f for f in focus_high if f.lower() in post.primary_text().lower()]
@@ -128,6 +142,16 @@ def generate_drafts(
                 retry_prompt = prompt + "\n\n注意: 上の元投稿の語尾だけ変えるのは禁止。論点を抽象化し、自分の意見と並べて書いてください。"
                 draft_text = llm.complete(retry_prompt, max_tokens=channel_max_tokens, temperature=0.7).strip()
                 originality_note = "1st draft was too close to source; regenerated with stricter rephrase prompt."
+
+            # Completion sanity: if the last non-whitespace char is not a
+            # terminator (., 。, !, ?, ", ), —), the draft likely truncated
+            # mid-sentence (max_tokens hit).
+            if draft_text and not _looks_complete(draft_text):
+                originality_note += (
+                    " [WARNING] draft may be truncated — last char "
+                    f"{draft_text[-1]!r} is not a sentence terminator; "
+                    f"consider increasing max_tokens for channel '{ch}'."
+                )
 
             note_titles: list[str] = []
             note_outline: list[str] = []

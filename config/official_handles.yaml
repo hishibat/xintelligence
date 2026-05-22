@@ -1,0 +1,63 @@
+# =====================================================================
+# Official / Founder / Engineer X handle registry
+# =====================================================================
+# verification.tag_items() uses this to upgrade source_type when an item's
+# cited_urls or url contains one of these handles.
+#
+# Priority (top to bottom in the resolved match):
+#   official > founder_executive > engineer_dev > media > influencer
+#
+# Handles are stored lowercase, without the leading @. Match is done against
+# the segment between "x.com/" and "/status/" in each URL (case-insensitive).
+# =====================================================================
+
+official:
+  # AI labs / model providers
+  - anthropicai          # Anthropic official
+  - openai               # OpenAI official
+  - googledeepmind       # Google DeepMind
+  - xai                  # xAI official
+  - nousresearch         # Nous Research
+  - mistralai            # Mistral
+  - cohere               # Cohere
+
+  # Hyperscalers / cloud
+  - awscloud             # AWS
+  - microsoft            # Microsoft
+  - googlecloud          # GCP
+  - azure                # Microsoft Azure
+  - oraclecloud          # Oracle Cloud
+
+  # Data / infra vendors
+  - databricks
+  - snowflakedb          # Snowflake
+  - nvidia
+  - openclaw             # OpenClaw
+
+  # Standards / official bodies
+  - euaioffice           # EU AI Office
+  - stanfordhai          # Stanford HAI
+
+founder_executive:
+  - elonmusk             # xAI founder
+  - sama                 # Sam Altman (OpenAI)
+  - satyanadella         # Microsoft CEO
+  - demishassabis        # Google DeepMind CEO
+  - dario_amodei         # Anthropic CEO (if posts under this handle)
+  - jensenhuang          # NVIDIA CEO
+  - karpathy             # Andrej Karpathy
+
+engineer_dev:
+  - simonw               # Simon Willison
+  - jayalammar           # Jay Alammar
+  - bcherny              # Boris Cherny (Anthropic)
+  - grimalkina           # Cat Hicks
+  - schneierblog         # Bruce Schneier
+
+media:
+  - stanfordhai_media    # placeholder (Stanford HAI media handle if separate)
+  - gartner_inc
+
+influencer:
+  # Reserved for known X power-users without a clear org affiliation.
+  - linusekenstam

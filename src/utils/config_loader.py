@@ -36,6 +36,7 @@ class AppConfig:
     output: dict[str, Any]
     env: dict[str, str]
     fixtures_path: Path = FIXTURES_PATH
+    official_handles: dict[str, Any] = None  # type: ignore[assignment]
 
     def config_hash(self) -> str:
         """Hash includes all YAML configs PLUS fixtures content.
@@ -86,4 +87,5 @@ def load_config(env_file: Path | None = None) -> AppConfig:
         profile=_read_yaml("profile.yaml"),
         output=_read_yaml("output.yaml"),
         env={k: v for k, v in os.environ.items()},
+        official_handles=_read_yaml("official_handles.yaml"),
     )
