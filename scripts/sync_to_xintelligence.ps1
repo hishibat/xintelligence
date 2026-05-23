@@ -28,7 +28,12 @@ param(
     [switch]$DryRun
 )
 
-$ErrorActionPreference = "Stop"
+# IMPORTANT: do NOT set $ErrorActionPreference = "Stop" here.
+# git writes progress to stderr (e.g. "1/25 (0) [0]") even on success.
+# In PowerShell 5.1, ErrorActionPreference=Stop combined with stderr
+# output from a native exe raises NativeCommandError and aborts the
+# script BEFORE we can inspect $LASTEXITCODE. We rely on explicit
+# $LASTEXITCODE checks after each git invocation instead.
 
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 $Prefix   = "Content_Production/x-intelligence"
@@ -48,8 +53,13 @@ Push-Location $RepoRoot
 try {
     # 1) Verify remote exists
     $remotes = git remote
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "git remote listing failed (exit $LASTEXITCODE)"
+        exit 1
+    }
     if ($remotes -notcontains $RemoteName) {
-        throw "git remote '$RemoteName' is not configured. Run: git remote add $RemoteName https://github.com/hishibat/xintelligence.git"
+        Write-Error "git remote '$RemoteName' is not configured. Run: git remote add $RemoteName https://github.com/hishibat/xintelligence.git"
+        exit 1
     }
 
     # 2) Working tree must be clean enough — warn if there are unstaged
@@ -62,11 +72,14 @@ try {
         Write-Warning "Commit them first if you want them included."
     }
 
-    # 3) Subtree split — extract the prefix history into a temp branch
+    # 3) Subtree split — extract the prefix history into a temp branch.
+    # `git subtree split` writes progress ("N/M (X) [Y]") to stderr even on
+    # success — that's normal. We check $LASTEXITCODE to decide success/fail.
     Write-Host "[1/2] git subtree split --prefix=$Prefix HEAD -b $TempBranch" -ForegroundColor Yellow
     git subtree split --prefix=$Prefix HEAD -b $TempBranch
     if ($LASTEXITCODE -ne 0) {
-        throw "subtree split failed (exit $LASTEXITCODE)"
+        Write-Error "subtree split failed (exit $LASTEXITCODE)"
+        exit 1
     }
 
     $newHead = (git rev-parse $TempBranch).Trim()
@@ -81,7 +94,8 @@ try {
         Write-Host "[2/2] git push $RemoteName $TempBranch`:$RemoteBranch" -ForegroundColor Yellow
         git push $RemoteName "$TempBranch`:$RemoteBranch"
         if ($LASTEXITCODE -ne 0) {
-            throw "git push failed (exit $LASTEXITCODE). Branch '$TempBranch' left in place for retry."
+            Write-Error "git push failed (exit $LASTEXITCODE). Branch '$TempBranch' left in place for retry."
+            exit 1
         }
 
         # 5) Cleanup temp branch on success
