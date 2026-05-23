@@ -3,6 +3,41 @@
 このリポジトリは「mock data mode で E2E が通る」ことを最優先で設計されています。
 新しい機能を足す前に、必ず `pytest -q` と `python scripts/run_daily.py --provider mock` が green であることを確認してください。
 
+## Dual-repo セットアップ（2026-05-22〜）
+
+このコードは **2 つの GitHub repo** にミラーされています：
+
+| 役割 | リポジトリ | パス | 用途 |
+|---|---|---|---|
+| **primary**（開発） | `hishibat/company` | `Content_Production/x-intelligence/` | **commit はここで行う**。社長 workspace 全体と一緒に管理 |
+| **mirror**（公開） | `hishibat/xintelligence` | root | スタンドアロン参照・将来の OSS 化候補。履歴保持で同期 |
+
+### 同期ルール
+
+1. **commit は必ず company 側**（`workspace/company` の `feature/content-and-tools-2026-04-04` ブランチ）で行う
+2. mirror 側 (`hishibat/xintelligence`) に直接 push したり PR を出したりしない
+3. **適切なタイミング**で同期スクリプトを走らせて mirror へ反映：
+   - 機能 1 単位の commit が増えた時
+   - PR を出す前後
+   - 週次レビュー時
+4. 同期コマンド（PowerShell、workspace/company のどこからでも OK）：
+   ```powershell
+   cd C:\Users\Hideyuki Shibata\workspace\company\Content_Production\x-intelligence
+   .\scripts\sync_to_xintelligence.ps1          # 通常 push
+   .\scripts\sync_to_xintelligence.ps1 -DryRun  # split のみで push しない
+   ```
+5. 同期後は **mirror 側の HEAD commit hash** が変わる（subtree split で再計算されるため）。同期した事実は company 側の commit message には書かなくてよい。
+
+### 同期されないもの
+
+- `outputs/` 配下（`.gitignore` で除外、両 repo で空）
+- `Content_Production/x-intelligence/` の外側にあるファイル（`workspace/CLAUDE.md` 等）
+
+### Troubleshoot
+
+- `git remote 'xintelligence' is not configured` → `git remote add xintelligence https://github.com/hishibat/xintelligence.git`
+- push が rejected → mirror 側に手動で commit が入っている可能性。原則 mirror は force push せず、まず `gh repo view hishibat/xintelligence` で誰が触ったか確認
+
 ## 開発原則
 
 1. **Mock first**: 新 Provider / 新 LLM を追加するときは、まず adapter の抽象に合わせて mock で動かす。実 API は後段。
